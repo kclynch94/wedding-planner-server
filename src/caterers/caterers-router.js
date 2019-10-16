@@ -26,7 +26,7 @@ caterersRouter
     .route('/')
     .all(requireAuth)
     .get(jsonParser, (req, res, next) => {
-        console.log("caterersRouter Get")
+        console.log("req.headers", req.headers)
             if(req.user.user_email){
                 console.log("caterersRouter get authenticated")
             const knexInstance = req.app.get('db')

@@ -11,12 +11,18 @@ authRouter
     .route('/signup')
     .post(jsonParser, (req, res, next) => {
         User.signup(req, res)
+        .catch(error => {
+            res.json(error)
+        })
     })
 
 authRouter
     .route('/login')
     .post(jsonParser, (req, res, next) => {
         User.signin(req, res)
+        .catch(error => {
+            res.json(error)
+        })
     })
     
 module.exports = authRouter

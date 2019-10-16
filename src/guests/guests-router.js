@@ -13,10 +13,7 @@ const serializeGuest = guest => {
         guest_last_name: xss(guest.guest_last_name),
         guest_type: xss(guest.guest_type),
         guest_plus_one: guest.guest_plus_one,
-        guest_street: xss(guest.guest_street),
-        guest_city: xss(guest.guest_city),
-        guest_state: xss(guest.guest_state),
-        guest_zip: guest.guest_zip,
+        guest_address: xss(guest.guest_address),
         user_id: guest.user_id
     }
 }
@@ -32,8 +29,8 @@ guestsRouter
             .catch(next)
     })
     .post(jsonParser, (req, res, next) => {
-        const { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_street, guest_city, guest_state, guest_zip, user_id } = req.body
-        const newGuest = { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_street, guest_city, guest_state, guest_zip, user_id }
+        const { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address, user_id } = req.body
+        const newGuest = { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address, user_id }
 
         for (const [key, value] of Object.entries(newGuest))
             if (value == null)
@@ -86,8 +83,8 @@ guestsRouter
             .catch(next)
     })
     .patch(jsonParser, (req, res, next) => {
-        const { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_street, guest_city, guest_state, guest_zip } = req.body
-        const guestToUpdate = { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_street, guest_city, guest_state, guest_zip }
+        const { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address } = req.body
+        const guestToUpdate = { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address }
 
         GuestsService.updateGuest(
             req.app.get('db'),

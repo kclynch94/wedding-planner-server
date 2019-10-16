@@ -15,8 +15,7 @@ const crypto          = require('crypto')                         // built-in en
 
 const signup = (request, response) => {
     const user = request.body
-    console.log(request.body)
-    hashPassword(user.user_password)
+    return hashPassword(user.user_password)
       .then((hashedPassword) => {
         delete user.password
         user.password_digest = hashedPassword
@@ -25,8 +24,12 @@ const signup = (request, response) => {
       .then(token => user.token = token)
       .then(() => createUser(user))
       .then(user => {
-        delete user.password_digest
-        response.status(201).json({ user })
+        if(user.severity === "ERROR") {
+          response.status(400).json(user)
+        } else {
+          delete user.password_digest
+          response.status(201).json({ user })
+        }
       })
       .catch((err) => console.error(err))
   }
@@ -47,6 +50,7 @@ const createUser = (user) => {
     [user.user_email, user.password_digest, user.token, new Date(), user.user_first_name, user.user_last_name]
   )
   .then((data) => data.rows[0])
+  .catch(error => error)
 }
 
 // crypto ships with node - we're leveraging it to create a random, secure token
@@ -62,10 +66,14 @@ const signin = (request, response) => {
     const userReq = request.body
     let user
   
-    findUser(userReq)
+    return findUser(userReq)
       .then(foundUser => {
-        user = foundUser
-        return checkPassword(userReq.user_password, foundUser)
+        if (foundUser) {
+          user = foundUser
+          return checkPassword(userReq.user_password, foundUser)
+        } else {
+          return 'User not found'
+        }
       })
       .then((res) => createToken())
       .then(token => updateUserToken(token, user))
@@ -99,8 +107,12 @@ const checkPassword = (reqPassword, foundUser) => {
 }
 
 const updateUserToken = (token, user) => {
-  return database.raw("UPDATE users SET user_token = ? WHERE id = ? RETURNING id, user_email, user_token", [token, user.id])
-    .then((data) => data.rows[0])
+  if (user && user.id){
+    return database.raw("UPDATE users SET user_token = ? WHERE id = ? RETURNING id, user_email, user_token", [token, user.id])
+      .then((data) => data.rows[0])
+  }else{
+    return{}
+  }
 }
 
 const authenticate = (userReq) => {
@@ -117,6 +129,7 @@ const authenticate = (userReq) => {
   }
   
 const findByToken = (token) => {
+  console.log('token', token)
     return database.raw("SELECT * FROM users WHERE user_token = ?", [token])
       .then((data) => {
         return data.rows[0]

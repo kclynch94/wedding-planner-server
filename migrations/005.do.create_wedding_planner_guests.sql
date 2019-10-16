@@ -3,11 +3,8 @@ CREATE TABLE guests (
     guest_first_name TEXT NOT NULL,
     guest_last_name TEXT NOT NULL,
     guest_type TEXT NOT NULL,
-    guest_plus_one BOOLEAN NOT NULL,
-    guest_street VARCHAR(60),
-    guest_city TEXT,
-    guest_state TEXT,
-    guest_zip INTEGER,
+    guest_plus_one TEXT NOT NULL,
+    guest_address TEXT,
     user_id INTEGER
         REFERENCES users(id) ON DELETE CASCADE NOT NULL
 );

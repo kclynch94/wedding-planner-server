@@ -116,6 +116,7 @@ const authenticate = (db, userReq) => {
   }
   
 const findByToken = (db, token) => {
+  console.log('db', db)
     return db.raw("SELECT * FROM users WHERE user_token = ?", [token])
       .then((data) => {
         return data.rows[0]

@@ -57,7 +57,7 @@ usersRouter
     .route('/current-user')
     .post(jsonParser, (req, res, next) => {
         return User.findByToken(req.body.token).then(function(user) {
-            return res.json(serializeUser(user))
+            return res.json(serializeUser(user)).catch(error => {console.log(error)})
     })
 })
 

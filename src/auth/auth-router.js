@@ -19,7 +19,7 @@ authRouter
 authRouter
     .route('/login')
     .post(jsonParser, (req, res, next) => {
-        User.signin(req, res)
+        return User.signin(req, res)
         .catch(error => {
             res.json(error)
         })

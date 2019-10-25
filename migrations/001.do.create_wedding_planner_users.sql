@@ -4,6 +4,7 @@ CREATE TABLE users (
     user_last_name TEXT NOT NULL,
     user_email TEXT NOT NULL UNIQUE,
     user_token TEXT,
-    user_password_digest TEXT NOT NULL,
+    user_password_digest TEXT,
+    user_password TEXT,
     user_created_at TIMESTAMP 
 );

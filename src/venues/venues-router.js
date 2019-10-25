@@ -16,8 +16,8 @@ const serializeVenue = venue => {
         venue_price: venue.venue_price,
         venue_rating: venue.venue_rating,
         venue_capacity: venue.venue_capacity,
-        venue_pros: xss(venue.venue_pros),
-        venue_cons: xss(venue.venue_cons),
+        venue_pros: [xss(venue.venue_pros)],
+        venue_cons: [xss(venue.venue_cons)],
         user_id: venue.user_id
     }
 }
@@ -38,8 +38,8 @@ venuesRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { venue_name, venue_website, venue_price, venue_rating, venue_capacity, venue_pros, venue_cons, user_id } = req.body
-        const newVenue = { venue_name, venue_website, venue_price, venue_rating, venue_capacity, venue_pros, venue_cons, user_id }
+        const { venue_name, user_id } = req.body
+        const newVenue = { venue_name, user_id }
 
         for (const [key, value] of Object.entries(newVenue))
             if (value == null)

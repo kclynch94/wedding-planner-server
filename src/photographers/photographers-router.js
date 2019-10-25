@@ -15,8 +15,8 @@ const serializePhotographer = photographer => {
         photographer_website: xss(photographer.photographer_website),
         photographer_price: photographer.photographer_price,
         photographer_rating: photographer.photographer_rating,
-        photographer_pros: xss(photographer.photographer_pros),
-        photographer_cons: xss(photographer.photographer_cons),
+        photographer_pros: [xss(photographer.photographer_pros)],
+        photographer_cons: [xss(photographer.photographer_cons)],
         user_id: photographer.user_id
     }
 }
@@ -37,8 +37,8 @@ photographersRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { photographer_name, photographer_website, photographer_price, photographer_rating, photographer_pros, photographer_cons, user_id } = req.body
-        const newPhotographer = { photographer_name, photographer_website, photographer_price, photographer_rating, photographer_pros, photographer_cons, user_id }
+        const { photographer_name, user_id } = req.body
+        const newPhotographer = { photographer_name, user_id }
 
         for (const [key, value] of Object.entries(newPhotographer))
             if (value == null)

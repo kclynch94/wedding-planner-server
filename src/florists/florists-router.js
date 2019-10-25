@@ -15,8 +15,8 @@ const serializeFlorist = florist => {
         florist_website: xss(florist.florist_website),
         florist_price: florist.florist_price,
         florist_rating: florist.florist_rating,
-        florist_pros: xss(florist.florist_pros),
-        florist_cons: xss(florist.florist_cons),
+        florist_pros: [xss(florist.florist_pros)],
+        florist_cons: [xss(florist.florist_cons)],
         user_id: florist.user_id
     }
 }
@@ -37,8 +37,8 @@ floristsRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { florist_name, florist_website, florist_price, florist_rating, florist_pros, florist_cons, user_id } = req.body
-        const newFlorist = { florist_name, florist_website, florist_price, florist_rating, florist_pros, florist_cons, user_id }
+        const { florist_name, user_id } = req.body
+        const newFlorist = { florist_name, user_id }
 
         for (const [key, value] of Object.entries(newFlorist))
             if (value == null)

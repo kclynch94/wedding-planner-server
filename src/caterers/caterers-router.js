@@ -15,9 +15,9 @@ const serializeCaterer = caterer => {
         caterer_website: xss(caterer.caterer_website),
         caterer_price: caterer.caterer_price,
         caterer_rating: caterer.caterer_rating,
-        caterer_type: caterer.caterer_type,
-        caterer_pros: xss(caterer.caterer_pros),
-        caterer_cons: xss(caterer.caterer_cons),
+        caterer_type: xss(caterer.caterer_type),
+        caterer_pros: [xss(caterer.caterer_pros)],
+        caterer_cons: [xss(caterer.caterer_cons)],
         user_id: caterer.user_id
     }
 }
@@ -26,9 +26,7 @@ caterersRouter
     .route('/')
     .all(requireAuth)
     .get(jsonParser, (req, res, next) => {
-        console.log("req.headers", req.headers)
             if(req.user.user_email){
-                console.log("caterersRouter get authenticated")
             const knexInstance = req.app.get('db')
             CaterersService.getAllCaterers(knexInstance, req.user.id)
                 .then(caterers => {
@@ -36,15 +34,15 @@ caterersRouter
                 })
                 .catch(next)
             } else {
-                console.log("user not authenticated")
                 return res.status(403).json({error: "not authenticated"})
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { caterer_name, caterer_website, caterer_price, caterer_rating, caterer_type, caterer_pros, caterer_cons, user_id } = req.body
-        const newCaterer = { caterer_name, caterer_website, caterer_price, caterer_rating, caterer_type, caterer_pros, caterer_cons, user_id }
+        const { caterer_name, caterer_website, caterer_pros, caterer_type, caterer_cons, user_id } = req.body
+        const newCaterer = { caterer_name, caterer_website, caterer_pros, caterer_type, caterer_cons, user_id }
+        const requiredFields = {caterer_name, user_id }
 
-        for (const [key, value] of Object.entries(newCaterer))
+        for (const [key, value] of Object.entries(requiredFields))
             if (value == null)
                 return res.status(400).json({
                     error: { message: `Missing '${key}' in request body`}

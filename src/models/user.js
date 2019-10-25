@@ -1,20 +1,10 @@
 const environment     = process.env.NODE_ENV || 'development';    // set environment
-const { DB_URL } = require('../config')
-
-// //const db = knex({
-//     client: 'pg',
-//     connection: DB_URL,
-// })
-//const configuration   = require('../knexfile')[environment];   // pull in correct db with env configs
-const database        = require('knex')({
-    client: 'pg',
-    connection: DB_URL,
-});           // define database based on above
 const bcrypt          = require('bcrypt')                         // bcrypt will encrypt passwords to be saved in db
 const crypto          = require('crypto')                         // built-in encryption node module
 
 const signup = (request, response) => {
     const user = request.body
+    const db = request.app.get('db')
     return hashPassword(user.user_password)
       .then((hashedPassword) => {
         delete user.password
@@ -22,7 +12,7 @@ const signup = (request, response) => {
       })
       .then(() => createToken())
       .then(token => user.token = token)
-      .then(() => createUser(user))
+      .then(() => createUser(db, user))
       .then(user => {
         if(user.severity === "ERROR") {
           response.status(400).json(user)
@@ -43,9 +33,8 @@ const hashPassword = (password) => {
 }
 
 // user will be saved to db - we're explicitly asking postgres to return back helpful info from the row created
-const createUser = (user) => {
-    console.log(user)
-  return database.raw(
+const createUser = (db, user) => {
+  return db.raw(
     "INSERT INTO users (user_email, user_password_digest, user_token, user_created_at, user_first_name, user_last_name) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, user_email, user_created_at, user_token, user_first_name, user_last_name",
     [user.user_email, user.password_digest, user.token, new Date(), user.user_first_name, user.user_last_name]
   )
@@ -65,8 +54,8 @@ const createToken = () => {
 const signin = (request, response) => {
     const userReq = request.body
     let user
-  
-    return findUser(userReq)
+    const db = request.app.get('db')
+    return findUser(db, userReq)
       .then(foundUser => {
         if (foundUser) {
           user = foundUser
@@ -76,16 +65,16 @@ const signin = (request, response) => {
         }
       })
       .then((res) => createToken())
-      .then(token => updateUserToken(token, user))
+      .then(token => updateUserToken(db, token, user))
       .then((updatedUser) => {
         delete updatedUser
-        response.status(200).json(updatedUser)
+        return response.status(200).json(updatedUser)
       })
       .catch((err) => console.error(err))
   }
 
-const findUser = (userReq) => {
-  return database.raw("SELECT * FROM users WHERE user_email = ?", [userReq.user_email])
+const findUser = (db, userReq) => {
+  return db.raw("SELECT * FROM users WHERE user_email = ?", [userReq.user_email])
     .then((data) => data.rows[0])
 }
 
@@ -106,31 +95,28 @@ const checkPassword = (reqPassword, foundUser) => {
   })
 }
 
-const updateUserToken = (token, user) => {
+const updateUserToken = (db, token, user) => {
   if (user && user.id){
-    return database.raw("UPDATE users SET user_token = ? WHERE id = ? RETURNING id, user_email, user_token", [token, user.id])
+    return db.raw("UPDATE users SET user_token = ? WHERE id = ? RETURNING id, user_email, user_token", [token, user.id])
       .then((data) => data.rows[0])
   }else{
     return{}
   }
 }
 
-const authenticate = (userReq) => {
-    return (findByToken(userReq.token)
+const authenticate = (db, userReq) => {
+    return (findByToken(db, userReq.token)
       .then((user) => {
         if (user && (user.user_email == userReq.user_email)) {
-            console.log("user authenticate true")
           return user
         } else {
-            console.log("user authenticate false")
           return {}
         }
       }))
   }
   
-const findByToken = (token) => {
-  console.log('token', token)
-    return database.raw("SELECT * FROM users WHERE user_token = ?", [token])
+const findByToken = (db, token) => {
+    return db.raw("SELECT * FROM users WHERE user_token = ?", [token])
       .then((data) => {
         return data.rows[0]
       })

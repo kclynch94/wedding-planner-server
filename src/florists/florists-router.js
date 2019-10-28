@@ -37,10 +37,11 @@ floristsRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { florist_name, user_id } = req.body
-        const newFlorist = { florist_name, user_id }
+        const { florist_name, florits_website, florist_pros, florist_cons, user_id } = req.body
+        const newFlorist = { florist_name, florits_website, florist_pros, florist_cons, user_id }
+        const requiredFields = {florist_name, user_id }
 
-        for (const [key, value] of Object.entries(newFlorist))
+        for (const [key, value] of Object.entries(requiredFields))
             if (value == null)
                 return res.status(400).json({
                     error: { message: `Missing '${key}' in request body`}

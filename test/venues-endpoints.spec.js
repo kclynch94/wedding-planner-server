@@ -256,7 +256,6 @@ describe('Venues Endpoints', function() {
         maliciousVenue,
         expectedVenue,
       } = helpers.makeMaliciousVenue(testUser)
-      console.log('malisiousVenue', maliciousVenue)
       return supertest(app)
         .post(`/api/venues`)
         .send(maliciousVenue)

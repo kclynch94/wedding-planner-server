@@ -1,6 +1,6 @@
 const GuestsService = {
-    getAllGuests(knex) {
-        return knex.select('*').from('guests')
+    getAllGuests(knex, user_id) {
+        return knex.select('*').from('guests').where('user_id', user_id)
     },
     insertGuest(knex, newGuest) {
         return knex

@@ -6,11 +6,9 @@ function requireAuth(req, res, next) {
 
   try {
     //const payload = AuthService.verifyJwt(bearerToken)
-    console.log('authToken', authToken)
     const db = req.app.get('db')
     return User.authenticate(db, {token: authToken,user_email: req.header('user_email')})
       .then(user => {
-        console.log('requireAuth User', user)
         if (!user)
           return res.status(401).json({ error: 'Unauthorized request' })
 
@@ -22,7 +20,6 @@ function requireAuth(req, res, next) {
         next(err)
       })
   } catch(error) {
-      console.log('error', error)
     res.status(401).json({ error: 'Unauthorized request' })
   }
 }

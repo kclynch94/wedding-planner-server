@@ -251,7 +251,7 @@ function makeUsersArray() {
         guest_type: 'Local',
         guest_plus_one: 'Yes',
         guest_address: '211 Peter DeHaven Drive, Phoenixville, PA 19460',
-        user_id: users[2].id,
+        user_id: 1,
       },
     ];
   }
@@ -310,10 +310,7 @@ function makeUsersArray() {
     }
   }
 
-  function makeExpectedGuest(users, guest) {
-    const user = users
-      .find(user => user.id === guest.user_id)
-  
+  function makeExpectedGuest(guest) {
     return {
         id: guest.id,
         guest_first_name: guest.guest_first_name,
@@ -321,7 +318,7 @@ function makeUsersArray() {
         guest_type: guest.guest_type,
         guest_plus_one: guest.guest_plus_one,
         guest_address: guest.guest_address,
-        user_id: user.id,
+        user_id: guest.user_id,
     }
   }
 
@@ -429,15 +426,16 @@ function makeUsersArray() {
         id: 911,
         guest_first_name: 'Naughty naughty very naughty <script>alert("xss");</script>',
         guest_last_name: 'Naughty naughty very naughty <script>alert("xss");</script>',
-        guest_type: guest.guest_type,
-        guest_plus_one: guest.guest_plus_one,
+        guest_type: 'Naughty naughty very naughty <script>alert("xss");</script>',
+        guest_plus_one: 'Yes',
         guest_address: 'Naughty naughty very naughty <script>alert("xss");</script>',
         user_id: user.id,
     }
     const expectedGuest = {
-      ...makeExpectedGuest([user], maliciousGuest),
+      ...makeExpectedGuest(maliciousGuest),
       guest_first_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       guest_last_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+      guest_type: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       guest_address: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
     }
     return {
@@ -587,6 +585,30 @@ function makeUsersArray() {
         .insert([venue])
   }
   
+  function seedGuestsTables(db, users, guests) {
+    // use a transaction to group the queries and auto rollback on any failure
+    return db.transaction(async trx => {
+      await trx.into('users').insert(users)
+      await trx.into('guests').insert(guests)
+      // update the auto sequence to match the forced id values
+      await Promise.all([
+        trx.raw(
+          `SELECT setval('users_id_seq', ?)`,
+          [users[users.length - 1].id],
+        ),
+        trx.raw(
+          `SELECT setval('guests_id_seq', ?)`,
+          [guests[guests.length - 1].id],
+        ),
+      ])
+    })
+  }
+  
+  function seedMaliciousGuest(db, guest) {
+    return db
+        .into('guests')
+        .insert([guest])
+  }
   module.exports = {
     makeUsersArray,
     makeCaterersArray,
@@ -616,5 +638,7 @@ function makeUsersArray() {
     seedMaliciousPhotographer,
     seedVenuesTables,
     seedMaliciousVenue,
+    seedGuestsTables,
+    seedMaliciousGuest,
     
   }

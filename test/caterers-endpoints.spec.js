@@ -252,13 +252,12 @@ describe('Caterers Endpoints', function() {
         )
     })
 
-    it.only('removes XSS attack content from response', () => {
+    it('removes XSS attack content from response', () => {
       const testUser = registerUser
       const {
         maliciousCaterer,
         expectedCaterer,
       } = helpers.makeMaliciousCaterer(testUser)
-      console.log('malisiousCaterer', maliciousCaterer)
       return supertest(app)
         .post(`/api/caterers`)
         .send(maliciousCaterer)
@@ -268,7 +267,6 @@ describe('Caterers Endpoints', function() {
         })
         .expect(201)
         .expect(res => {
-          console.log('res.body', res.body)
           expect(res.body.caterer_name).to.eql(expectedCaterer.caterer_name)
           expect(res.body.caterer_website).to.eql(expectedCaterer.caterer_website)
           expect(res.body.caterer_type).to.eql(expectedCaterer.caterer_type)

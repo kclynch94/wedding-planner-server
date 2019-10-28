@@ -37,10 +37,11 @@ photographersRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { photographer_name, user_id } = req.body
-        const newPhotographer = { photographer_name, user_id }
+        const { photographer_name, photographer_website, photographer_pros, photographer_cons, user_id  } = req.body
+        const newPhotographer = { photographer_name, photographer_website, photographer_pros, photographer_cons, user_id }
+        const requiredFields = {photographer_name, user_id }
 
-        for (const [key, value] of Object.entries(newPhotographer))
+        for (const [key, value] of Object.entries(requiredFields))
             if (value == null)
                 return res.status(400).json({
                     error: { message: `Missing '${key}' in request body`}

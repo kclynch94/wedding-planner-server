@@ -256,7 +256,6 @@ describe('Florists Endpoints', function() {
         maliciousFlorist,
         expectedFlorist,
       } = helpers.makeMaliciousFlorist(testUser)
-      console.log('malisiousFlorist', maliciousFlorist)
       return supertest(app)
         .post(`/api/florists`)
         .send(maliciousFlorist)

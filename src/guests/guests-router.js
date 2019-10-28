@@ -2,6 +2,7 @@ const path = require('path')
 const express = require('express')
 const xss = require('xss')
 const GuestsService = require('./guests-service')
+const {requireAuth} = require('../middleware/jwt-auth')
 
 const guestsRouter = express.Router()
 const jsonParser = express.json()
@@ -20,19 +21,25 @@ const serializeGuest = guest => {
 
 guestsRouter
     .route('/')
-    .get((req, res, next) => {
-        const knexInstance = req.app.get('db')
-        GuestsService.getAllGuests(knexInstance)
-            .then(guests => {
-                res.json(guests.map(serializeGuest))
-            })
-            .catch(next)
+    .all(requireAuth)
+    .get(jsonParser, (req, res, next) => {
+        if(req.user.user_email){
+            const knexInstance = req.app.get('db')
+            GuestsService.getAllGuests(knexInstance, req.user.id)
+                .then(guests => {
+                    res.json(guests.map(serializeGuest))
+                })
+                .catch(next)
+        } else {
+            return res.status(403).json({error: "not authenticated"})
+        }
     })
     .post(jsonParser, (req, res, next) => {
         const { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address, user_id } = req.body
         const newGuest = { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address, user_id }
+        const requiredFields = {guest_first_name, guest_last_name, guest_type, guest_plus_one}
 
-        for (const [key, value] of Object.entries(newGuest))
+        for (const [key, value] of Object.entries(requiredFields))
             if (value == null)
                 return res.status(400).json({
                     error: { message: `Missing '${key}' in request body`}

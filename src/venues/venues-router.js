@@ -39,9 +39,10 @@ venuesRouter
         })
     .post(jsonParser, (req, res, next) => {
         const { venue_name, user_id } = req.body
-        const newVenue = { venue_name, user_id }
+        const newVenue = { venue_name, venue_website, venue_pros, venue_cons, user_id }
+        const requiredFields = {venue_name, user_id }
 
-        for (const [key, value] of Object.entries(newVenue))
+        for (const [key, value] of Object.entries(requiredFields))
             if (value == null)
                 return res.status(400).json({
                     error: { message: `Missing '${key}' in request body`}

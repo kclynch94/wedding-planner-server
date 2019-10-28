@@ -256,7 +256,6 @@ describe('Photographers Endpoints', function() {
         maliciousPhotographer,
         expectedPhotographer,
       } = helpers.makeMaliciousPhotographer(testUser)
-      console.log('malisiousPhotographer', maliciousPhotographer)
       return supertest(app)
         .post(`/api/photographers`)
         .send(maliciousPhotographer)

@@ -200,13 +200,12 @@ describe('Guests Endpoints', function() {
   })
 
   describe(`POST /api/guests`, () => {
-    ['guest_first_name', 'guest_last_name', 'guest_type', 'guest_plus_one', 'user_id'].forEach(field => {
+    ['guest_first_name', 'guest_last_name', 'guest_type', 'guest_plus_one'].forEach(field => {
       const newGuest = {
         guest_first_name: 'test',
         guest_last_name: 'guest',
         guest_type: 'Out of town',
         guest_plus_one: 'Yes',
-        user_id: 1,
       }
     
       it(`responds with 400 missing '${field}' if not supplied`, () => {

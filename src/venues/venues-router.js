@@ -38,9 +38,10 @@ venuesRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { venue_name, user_id } = req.body
-        const newVenue = { venue_name, venue_website, venue_pros, venue_cons, user_id }
-        const requiredFields = {venue_name, user_id }
+        console.log('req.user', req.user)
+        const { venue_name, venue_website, venue_rating, venue_capacity, venue_price, venue_pros, venue_cons } = req.body
+        const newVenue = { venue_name, venue_website, venue_rating, venue_capacity, venue_price, venue_pros, venue_cons, user_id: req.user.id }
+        const requiredFields = {venue_name}
 
         for (const [key, value] of Object.entries(requiredFields))
             if (value == null)

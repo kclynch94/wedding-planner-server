@@ -35,9 +35,9 @@ guestsRouter
         }
     })
     .post(jsonParser, (req, res, next) => {
-        const { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address, user_id } = req.body
-        const newGuest = { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address, user_id }
-        const requiredFields = {guest_first_name, guest_last_name, guest_type, guest_plus_one}
+        const { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address } = req.body
+        const newGuest = { guest_first_name, guest_last_name, guest_type, guest_plus_one, guest_address, user_id: req.user.id }
+        const requiredFields = { guest_first_name, guest_last_name, guest_type, guest_plus_one }
 
         for (const [key, value] of Object.entries(requiredFields))
             if (value == null)

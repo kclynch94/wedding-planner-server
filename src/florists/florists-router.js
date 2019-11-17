@@ -37,9 +37,9 @@ floristsRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { florist_name, florits_website, florist_pros, florist_cons, user_id } = req.body
-        const newFlorist = { florist_name, florits_website, florist_pros, florist_cons, user_id }
-        const requiredFields = {florist_name, user_id }
+        const { florist_name, florist_website, florist_pros, florist_cons } = req.body
+        const newFlorist = { florist_name, florist_website, florist_pros, florist_cons, user_id: req.user.id }
+        const requiredFields = { florist_name }
 
         for (const [key, value] of Object.entries(requiredFields))
             if (value == null)

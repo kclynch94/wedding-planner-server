@@ -198,10 +198,9 @@ describe('Venues Endpoints', function() {
   })
 
   describe(`POST /api/venues`, () => {
-    ['venue_name', 'user_id'].forEach(field => {
+    ['venue_name'].forEach(field => {
       const newVenue = {
         venue_name: 'test venue',
-        user_id: 1,
       }
     
       it(`responds with 400 missing '${field}' if not supplied`, () => {

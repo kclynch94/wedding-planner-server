@@ -6,6 +6,7 @@ function makeUsersArray() {
         user_last_name: 'User',
         user_email: 'test2@gmail.com',
         user_password: 'password1234',
+        user_password_digest: '$2b$10$Q/NVKq9bnQyeo1KBTLPDFuw1j0sjhb02VhcUCMnhHpJyNWe45KHFG',
         user_created_at: new Date('2029-01-22T16:28:32.615Z'),       
       },
       {
@@ -609,6 +610,26 @@ function makeUsersArray() {
         .into('guests')
         .insert([guest])
   }
+
+  function seedUsersTables(db, users) {
+    // use a transaction to group the queries and auto rollback on any failure
+    return db.transaction(async trx => {
+      await trx.into('users').insert(users)
+      // update the auto sequence to match the forced id values
+      await Promise.all([
+        trx.raw(
+          `SELECT setval('users_id_seq', ?)`,
+          [users[users.length - 1].id],
+        ),
+      ])
+    })
+  }
+  
+  function seedMaliciousUser(db, user) {
+    return db
+        .into('users')
+        .insert([user])
+  }
   module.exports = {
     makeUsersArray,
     makeCaterersArray,
@@ -640,5 +661,7 @@ function makeUsersArray() {
     seedMaliciousVenue,
     seedGuestsTables,
     seedMaliciousGuest,
+    seedUsersTables,
+    seedMaliciousUser,
     
   }

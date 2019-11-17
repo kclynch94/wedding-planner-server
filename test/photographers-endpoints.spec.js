@@ -198,10 +198,9 @@ describe('Photographers Endpoints', function() {
   })
 
   describe(`POST /api/photographers`, () => {
-    ['photographer_name', 'user_id'].forEach(field => {
+    ['photographer_name'].forEach(field => {
       const newPhotographer = {
         photographer_name: 'test photographer',
-        user_id: 1,
       }
     
       it(`responds with 400 missing '${field}' if not supplied`, () => {

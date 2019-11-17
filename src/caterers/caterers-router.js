@@ -38,9 +38,9 @@ caterersRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        const { caterer_name, caterer_website, caterer_pros, caterer_type, caterer_cons, user_id } = req.body
-        const newCaterer = { caterer_name, caterer_website, caterer_pros, caterer_type, caterer_cons, user_id }
-        const requiredFields = {caterer_name, user_id }
+        const { caterer_name, caterer_website, caterer_pros, caterer_type, caterer_cons } = req.body
+        const newCaterer = { caterer_name, caterer_website, caterer_pros, caterer_type, caterer_cons, user_id: req.user.id }
+        const requiredFields = { caterer_name }
 
         for (const [key, value] of Object.entries(requiredFields))
             if (value == null)

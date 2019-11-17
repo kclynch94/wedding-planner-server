@@ -9,6 +9,7 @@ function requireAuth(req, res, next) {
     const db = req.app.get('db')
     return User.authenticate(db, {token: authToken,user_email: req.header('user_email')})
       .then(user => {
+        console.log('reqAuth user', user)
         if (!user)
           return res.status(401).json({ error: 'Unauthorized request' })
 

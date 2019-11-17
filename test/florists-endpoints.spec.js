@@ -198,10 +198,9 @@ describe('Florists Endpoints', function() {
   })
 
   describe(`POST /api/florists`, () => {
-    ['florist_name', 'user_id'].forEach(field => {
+    ['florist_name'].forEach(field => {
       const newFlorist = {
         florist_name: 'test florist',
-        user_id: 1,
       }
     
       it(`responds with 400 missing '${field}' if not supplied`, () => {

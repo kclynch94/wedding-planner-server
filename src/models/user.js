@@ -25,11 +25,16 @@ const signup = (request, response) => {
   }
 
 const hashPassword = (password) => {
-  return new Promise((resolve, reject) =>
-    bcrypt.hash(password, 10, (err, hash) => {
-      err ? reject(err) : resolve(hash)
-    })
-  )
+  return new Promise((resolve, reject) => {
+  console.log('password', password)
+    if(password) {
+      return bcrypt.hash(password, 10, (err, hash) => {
+        err ? reject(err) : resolve(hash)
+      })
+    } else {
+      return reject('err: missing password')
+    }   
+  })
 }
 
 // user will be saved to db - we're explicitly asking postgres to return back helpful info from the row created
@@ -61,16 +66,21 @@ const signin = (request, response) => {
           user = foundUser
           return checkPassword(userReq.user_password, foundUser)
         } else {
-          return 'User not found'
+          return response.status(400).json({error: 'Incorrect user_email or user_password'})
         }
       })
-      .then((res) => createToken())
+      .then((res) => {
+        return createToken()
+      })
       .then(token => updateUserToken(db, token, user))
       .then((updatedUser) => {
         delete updatedUser
         return response.status(200).json(updatedUser)
       })
-      .catch((err) => console.error(err))
+      .catch((err) => {
+        console.error(err)
+        return response.status(400).json({error: 'Incorrect user_email or user_password'})
+      })
   }
 
 const findUser = (db, userReq) => {
@@ -80,15 +90,18 @@ const findUser = (db, userReq) => {
 
 const checkPassword = (reqPassword, foundUser) => {
   return new Promise((resolve, reject) =>{
+    console.log('reqPassword', reqPassword)
+    console.log('foundUser', foundUser)
     return (
         bcrypt.compare(reqPassword, foundUser.user_password_digest, (err, response) => {
         if (err) {
-          reject(err)
+          console.log('err here')
+          return reject(err)
         }
         else if (response) {
-          resolve(response)
+          return resolve(response)
         } else {
-          reject(new Error('Passwords do not match.'))
+          return reject(new Error('Passwords do not match.'))
         }
     })
     )
@@ -107,6 +120,7 @@ const updateUserToken = (db, token, user) => {
 const authenticate = (db, userReq) => {
     return (findByToken(db, userReq.token)
       .then((user) => {
+        console.log('authenticate user', user)
         if (user && (user.user_email == userReq.user_email)) {
           return user
         } else {
@@ -116,8 +130,10 @@ const authenticate = (db, userReq) => {
   }
   
 const findByToken = (db, token) => {
+  console.log('token', token)
     return db.raw("SELECT * FROM users WHERE user_token = ?", [token])
       .then((data) => {
+        console.log('data', data)
         return data.rows[0]
       })
 }

@@ -200,10 +200,9 @@ describe('Caterers Endpoints', function() {
   })
 
   describe(`POST /api/caterers`, () => {
-    ['caterer_name', 'user_id'].forEach(field => {
+    ['caterer_name'].forEach(field => {
       const newCaterer = {
         caterer_name: 'test caterer',
-        user_id: 1,
       }
     
       it(`responds with 400 missing '${field}' if not supplied`, () => {

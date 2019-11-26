@@ -1,6 +1,6 @@
 const VenuesService = {
     getAllVenues(knex, user_id) {
-        return knex.select('*').from('venues').where('user_id', user_id)
+        return knex.select('*').from('venues').where('user_id', user_id).orderBy('id', 'asc')
     },
     insertVenue(knex, newVenue) {
         return knex

@@ -4,8 +4,6 @@ CREATE TABLE photographers (
     photographer_website TEXT,
     photographer_price TEXT,
     photographer_rating TEXT,
-    photographer_pros TEXT[],
-    photographer_cons TEXT[],
     user_id INTEGER
         REFERENCES users(id) ON DELETE CASCADE NOT NULL
 );

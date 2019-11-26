@@ -5,8 +5,6 @@ CREATE TABLE venues (
     venue_price TEXT,
     venue_rating TEXT,
     venue_capacity TEXT,
-    venue_pros TEXT[],
-    venue_cons TEXT[],
     user_id INTEGER
         REFERENCES users(id) ON DELETE CASCADE NOT NULL
 );

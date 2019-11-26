@@ -5,8 +5,6 @@ CREATE TABLE caterers (
     caterer_price TEXT,
     caterer_type TEXT,
     caterer_rating TEXT,
-    caterer_pros TEXT[],
-    caterer_cons TEXT[],
     user_id INTEGER
         REFERENCES users(id) ON DELETE CASCADE NOT NULL
 );

@@ -2,7 +2,8 @@ const path = require('path')
 const express = require('express')
 const xss = require('xss')
 const FloristsService = require('./florists-service')
-const User = require('../models/user.js')
+const ProsService = require('../pros/pros-service')
+const ConsService = require('../cons/cons-service')
 const {requireAuth} = require('../middleware/jwt-auth')
 
 const floristsRouter = express.Router()
@@ -15,10 +16,14 @@ const serializeFlorist = florist => {
         florist_website: xss(florist.florist_website),
         florist_price: florist.florist_price,
         florist_rating: florist.florist_rating,
-        florist_pros: [xss(florist.florist_pros)],
-        florist_cons: [xss(florist.florist_cons)],
         user_id: florist.user_id
     }
+}
+
+function flatten(arr) {
+    return arr.reduce(function (flat, toFlatten) {
+      return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+    }, []);
 }
 
 floristsRouter
@@ -29,7 +34,25 @@ floristsRouter
             const knexInstance = req.app.get('db')
             FloristsService.getAllFlorists(knexInstance, req.user.id)
                 .then(florists => {
-                    res.json(florists.map(serializeFlorist))
+                    const serializedFlorists = florists.map(serializeFlorist)
+                    const prosPromises = []
+                    const consPromises = []
+                    serializedFlorists.forEach(f => {
+                        prosPromises.push(ProsService.getAllProsBy(knexInstance, req.user.id, 'florist', f.id ))
+                        consPromises.push(ConsService.getAllConsBy(knexInstance, req.user.id, 'florist', f.id ))
+                    })
+                    const promises = [...prosPromises, ...consPromises]
+                    Promise.all(promises).then(data => {
+                        const florist_pros=flatten(data).filter(d => d.hasOwnProperty('pro_type'))
+                        const florist_cons=flatten(data).filter(d => d.hasOwnProperty('con_type'))
+                        const svs = serializedFlorists.map(f => {
+                            const ps = florist_pros.filter(p => p.ref_id === f.id)
+                            const cs = florist_cons.filter(c => c.ref_id === f.id)
+                            return {...f, florist_pros: ps, florist_cons:cs}
+                        })
+                        res.json(svs)
+                    })
+                    
                 })
                 .catch(next)
             } else {
@@ -38,7 +61,7 @@ floristsRouter
         })
     .post(jsonParser, (req, res, next) => {
         const { florist_name, florist_website, florist_pros, florist_cons } = req.body
-        const newFlorist = { florist_name, florist_website, florist_pros, florist_cons, user_id: req.user.id }
+        const newFlorist = { florist_name, florist_website, user_id: req.user.id }
         const requiredFields = { florist_name }
 
         for (const [key, value] of Object.entries(requiredFields))
@@ -52,32 +75,41 @@ floristsRouter
                 newFlorist
             )
                 .then(florist => {
-                    res
-                        .status(201)
-                        .location(path.posix.join(req.originalUrl, `/${florist.id}`))
-                        .json(serializeFlorist(florist))
+                    const pros = []
+                    const cons = []
+
+                    florist_pros.forEach(p => {
+                        const newPro = { pro_content: p, pro_type: 'florist', ref_id: florist.id, user_id: florist.user_id }
+                        pros.push(ProsService.insertPro(
+                            req.app.get('db'),
+                            newPro
+                        ))
+                    })
+
+                    florist_cons.forEach(c => {
+                        const newCon = { con_content: c, con_type: 'florist', ref_id: florist.id, user_id: florist.user_id }
+                        cons.push(ConsService.insertCon(
+                            req.app.get('db'),
+                            newCon
+                        ))
+                    })
+                    const promises = [...pros, ...cons]
+                    Promise.all(promises).then((data)=> {
+                        const serializedFlorist = serializeFlorist(florist)
+                        serializedFlorist.florist_pros=data.filter(d => d.hasOwnProperty('pro_type'))
+                        serializedFlorist.florist_cons=data.filter(d => d.hasOwnProperty('con_type'))
+                        res
+                            .status(201)
+                            .location(path.posix.join(req.originalUrl, `/${florist.id}`))
+                            .json(serializedFlorist)
+                    })
                 })
                 .catch(next)
     })
 
 floristsRouter
     .route('/:florist_id')
-    .all((req, res, next) => {
-        FloristsService.getById(
-            req.app.get('db'),
-            req.params.florist_id
-        )
-            .then(florist => {
-                if (!florist) {
-                    return res.status(404).json({
-                        error: { message: `Florist doesn't exist` }
-                    })
-                }
-                res.florist = florist
-                next()
-            })
-            .catch(next)
-    })
+    .all(requireAuth)
     .get((req, res, next) => {
         res.json(serializeFlorist(res.florist))
     })
@@ -91,16 +123,59 @@ floristsRouter
             })
             .catch(next)
     })
-    .patch(jsonParser, (req, res, next) => {
+    .patch(jsonParser, async(req, res, next) => {
+        const knexInstance = req.app.get('db')
         const { florist_name, florist_website, florist_price, florist_rating, florist_pros, florist_cons } = req.body
-        const floristToUpdate = { florist_name, florist_website, florist_price, florist_rating, florist_pros, florist_cons }
+        const floristToUpdate = { florist_name, florist_website, florist_price, florist_rating }
 
         FloristsService.updateFlorist(
             req.app.get('db'),
             req.params.florist_id,
             floristToUpdate
         )
-            .then(numRowsAffected => {
+            .then(async (numRowsAffected) => {
+                const prosToUpdate = []
+                const prosToDelete = []
+                const prosToCreate = []
+                const consToUpdate = []
+                const consToDelete = []
+                const consToCreate = []
+                //1. Update existing pros/cons or create pros/cons that do not have an id
+                const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'florist', req.params.florist_id )
+                const currentProsIds = currentPros.map(p => p.id)
+                const requestProsIds = florist_pros.map(p => p.id)
+                const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'florist', req.params.florist_id )
+                const currentConsIds = currentCons.map(c => c.id)
+                const requestConsIds = florist_cons.map(c => c.id)
+                const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
+                const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
+                florist_pros.forEach(p => {
+                    if (currentProsIds.includes(p.id)) {
+                        prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
+                    } else {
+                        prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'florist', pro_content: p.pro_content, ref_id: req.params.florist_id, user_id: req.user.id}))
+                    }
+                })
+                florist_cons.forEach(c => {
+                    if (currentConsIds.includes(c.id)) {
+                        consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
+                    } else {
+                        consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'florist', con_content: c.con_content, ref_id: req.params.florist_id, user_id: req.user.id}))
+                    }
+                })
+                //2. Delete the pros/cons that do not exist anymore
+                proIdsToDelete.forEach(id => {
+                    prosToDelete.push(ProsService.deletePro(knexInstance, id))
+                })
+                conIdsToDelete.forEach(id => {
+                    consToDelete.push(ConsService.deleteCon(knexInstance, id))
+                })
+                const promises = [...prosToUpdate, ...prosToDelete, ...prosToCreate, ...consToUpdate, ...consToDelete, ...consToCreate]
+                Promise.all(promises).then(data => {
+                    return data
+                })
+                
+                
                 res.status(204).end()
             })
             .catch(next)

@@ -1,26 +1,74 @@
-# Express Boilerplate!
+## Wedding Planner
 
-This is a boilerplate project used for starting new projects!
+Here is the link to the [live app](https://kclynch94-wedding-planner.now.sh/).
 
-## Set up
+## Summary
 
-Complete the following steps to start a new project (NEW-PROJECT-NAME):
+This app is designed to help people plan there weddings. With tons of options out there for each piece of a wedding it be hard to pick the right one and even keep track of all the options. Wedding planner allows you to log your favorites and compare them.
 
-1. Clone this repository to your local machine `git clone BOILERPLATE-URL NEW-PROJECTS-NAME`
-2. `cd` into the cloned repository
-3. Make a fresh start of the git history for this project with `rm -rf .git && git init`
-4. Install the node dependencies `npm install`
-5. Move the example Environment file to `.env` that will be ignored by git and read by the express server `mv example.env .env`
-6. Edit the contents of the `package.json` to use NEW-PROJECT-NAME instead of `"name": "express-boilerplate",`
+## API Endpoints
 
-## Scripts
+The base URL of the API is https://aqueous-peak-74784.herokuapp.com/api
 
-Start the application `npm start`
+This API is authenticated so only users with a valid API token will be able to access it.
 
-Start nodemon for the application `npm run dev`
+This API has endpoints for the following:
 
-Run the tests `npm test`
+* /venues
+* /photographers
+* /guests
+* /caterers
+* /florists
 
-## Deploying
+All of the endpoints have CRUD operations
 
-When your new project is ready for deployment, add a new Heroku application with `heroku create`. This will make a new git remote called "heroku" and you can then `npm run deploy` which will push to this remote's master branch.
+Pros and Cons each have their own table in the data base
+
+### Venues
+* id
+* venue_name
+* venue_website
+* venue_price
+* venue_rating
+* venue_capacity
+* user_id
+
+### Pros
+* id
+* pro_content
+* pro_type
+* ref_id
+* user_id
+
+### Cons
+* id
+* con_content
+* con_type
+* ref_id
+* user_id
+
+### Caterers
+* id
+* caterer_name
+* caterer_website
+* caterer_price
+* caterer_rating
+* caterer_type
+* user_id
+
+### Florists
+* id
+* florist_name
+* florist_website
+* florist_price
+* florist_rating
+* user_id
+
+### Guests
+* id
+* guest_first_name
+* guest_last_name
+* guest_type
+* guest_plus_one
+* guest_address
+* user_id

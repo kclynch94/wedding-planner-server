@@ -46,14 +46,12 @@ caterersRouter
                 Promise.all(promises).then(data => {
                     
                     const caterer_pros=flatten(data).filter(d => d.hasOwnProperty('pro_type'))
-                    const caterer_cons=flatten(data).filter(d => d.hasOwnProperty('con_type'))
-                    console.log('caterer cons', caterer_cons)
+                    const caterer_cons=flatten(data).filter(d => d.hasOwnProperty('con_type'))         
                     const svs = serializedCaterers.map(caterer => {
                         const ps = caterer_pros.filter(p => p.ref_id === caterer.id)
                         const cs = caterer_cons.filter(c => c.ref_id === caterer.id)
                         return {...caterer, caterer_pros: ps, caterer_cons:cs}
                     })
-                    console.log('svs', svs)
                     res.json(svs)
                 })
                 
@@ -74,7 +72,7 @@ caterersRouter
                     error: { message: `Missing '${key}' in request body`}
                 })
 
-            CaterersService.insertCaterer(
+            return CaterersService.insertCaterer(
                 req.app.get('db'),
                 newCaterer
             )
@@ -82,27 +80,31 @@ caterersRouter
                 const pros = []
                 const cons = []
 
-                caterer_pros.forEach(p => {
-                    const newPro = { pro_content: p, pro_type: 'caterer', ref_id: caterer.id, user_id: caterer.user_id }
-                    pros.push(ProsService.insertPro(
-                        req.app.get('db'),
-                        newPro
-                    ))
-                })
+                if(caterer_pros && caterer_pros.length) {
+                        caterer_pros.forEach(p => {
+                        const newPro = { pro_content: p, pro_type: 'caterer', ref_id: caterer.id, user_id: caterer.user_id }
+                        pros.push(ProsService.insertPro(
+                            req.app.get('db'),
+                            newPro
+                        ))
+                    })
+                }
 
-                caterer_cons.forEach(c => {
-                    const newCon = { con_content: c, con_type: 'caterer', ref_id: caterer.id, user_id: caterer.user_id }
-                    cons.push(ConsService.insertCon(
-                        req.app.get('db'),
-                        newCon
-                    ))
-                })
+                if(caterer_cons && caterer_cons.length) {
+                    caterer_cons.forEach(c => {
+                        const newCon = { con_content: c, con_type: 'caterer', ref_id: caterer.id, user_id: caterer.user_id }
+                        cons.push(ConsService.insertCon(
+                            req.app.get('db'),
+                            newCon
+                        ))
+                    })
+                }
                 const promises = [...pros, ...cons]
-                Promise.all(promises).then((data)=> {
+                return Promise.all(promises).then((data)=> {
                     const serializedCaterer = serializeCaterer(caterer)
                     serializedCaterer.caterer_pros=data.filter(d => d.hasOwnProperty('pro_type'))
                     serializedCaterer.caterer_cons=data.filter(d => d.hasOwnProperty('con_type'))
-                    res
+                    return res
                         .status(201)
                         .location(path.posix.join(req.originalUrl, `/${caterer.id}`))
                         .json(serializedCaterer)
@@ -114,8 +116,21 @@ caterersRouter
 caterersRouter
     .route('/:caterer_id')
     .all(requireAuth)
-    .get((req, res, next) => {
-        res.json(serializeCaterer(res.caterer))
+    .all((req, res, next) => {
+        CaterersService.getById(
+            req.app.get('db'),
+            req.params.caterer_id
+        )
+            .then(caterer => {
+                if (!caterer) {
+                    return res.status(404).json({
+                        error: { message: `Caterer doesn't exist` }
+                    })
+                }
+                res.caterer = caterer
+                next()
+            })
+            .catch(next)
     })
     .delete((req, res, next) => {
         CaterersService.deleteCaterer(
@@ -132,7 +147,7 @@ caterersRouter
         const { caterer_name, caterer_website, caterer_price, caterer_rating, caterer_type, caterer_pros, caterer_cons } = req.body
         const catererToUpdate = { caterer_name, caterer_website, caterer_price, caterer_rating, caterer_type }
 
-        CaterersService.updateCaterer(
+        return CaterersService.updateCaterer(
             knexInstance,
             req.params.caterer_id,
             catererToUpdate
@@ -145,42 +160,47 @@ caterersRouter
             const consToDelete = []
             const consToCreate = []
             //1. Update existing pros/cons or create pros/cons that do not have an id
-            const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'caterer', req.params.caterer_id )
-            const currentProsIds = currentPros.map(p => p.id)
-            const requestProsIds = caterer_pros.map(p => p.id)
-            const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'caterer', req.params.caterer_id )
-            const currentConsIds = currentCons.map(c => c.id)
-            const requestConsIds = caterer_cons.map(c => c.id)
-            const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
-            const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
-            caterer_pros.forEach(p => {
-                if (currentProsIds.includes(p.id)) {
-                    prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
-                } else {
-                    prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'caterer', pro_content: p.pro_content, ref_id: req.params.caterer_id, user_id: req.user.id}))
-                }
-            })
-            caterer_cons.forEach(c => {
-                if (currentConsIds.includes(c.id)) {
-                    consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
-                } else {
-                    consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'caterer', con_content: c.con_content, ref_id: req.params.caterer_id, user_id: req.user.id}))
-                }
-            })
+            if(caterer_pros && caterer_pros.length) {
+                const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'caterer', req.params.caterer_id )
+                const currentProsIds = currentPros.map(p => p.id)
+                const requestProsIds = caterer_pros.map(p => p.id)
+                const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
+                caterer_pros.forEach(p => {
+                    if (currentProsIds.includes(p.id)) {
+                        prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
+                    } else {
+                        prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'caterer', pro_content: p.pro_content, ref_id: req.params.caterer_id, user_id: req.user.id}))
+                    }
+                })
+                proIdsToDelete.forEach(id => {
+                    prosToDelete.push(ProsService.deletePro(knexInstance, id))
+                })
+            }
+            
+            if(caterer_cons && caterer_cons.length) {
+                const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'caterer', req.params.caterer_id )
+                const currentConsIds = currentCons.map(c => c.id)
+                const requestConsIds = caterer_cons.map(c => c.id)
+                const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
+                caterer_cons.forEach(c => {
+                    if (currentConsIds.includes(c.id)) {
+                        consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
+                    } else {
+                        consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'caterer', con_content: c.con_content, ref_id: req.params.caterer_id, user_id: req.user.id}))
+                    }
+                })
+                conIdsToDelete.forEach(id => {
+                    consToDelete.push(ConsService.deleteCon(knexInstance, id))
+                })
+            }
+            
             //2. Delete the pros/cons that do not exist anymore
-            proIdsToDelete.forEach(id => {
-                prosToDelete.push(ProsService.deletePro(knexInstance, id))
-            })
-            conIdsToDelete.forEach(id => {
-                consToDelete.push(ConsService.deleteCon(knexInstance, id))
-            })
             const promises = [...prosToUpdate, ...prosToDelete, ...prosToCreate, ...consToUpdate, ...consToDelete, ...consToCreate]
-            Promise.all(promises).then(data => {
-                return data
-            })
-            
-            
-            res.status(204).end()
+            await Promise.all(promises)
+            return res
+                        .status(204)
+                        .location(path.posix.join(req.originalUrl, `/${req.params.caterer_id}`))
+                        .json(catererToUpdate)       
         })
             .catch(next)
     })

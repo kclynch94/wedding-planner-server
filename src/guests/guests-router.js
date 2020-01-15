@@ -76,9 +76,6 @@ guestsRouter
             })
             .catch(next)
     })
-    .get((req, res, next) => {
-        res.json(serializeGuest(res.guest))
-    })
     .delete((req, res, next) => {
         GuestsService.deleteGuest(
             req.app.get('db'),

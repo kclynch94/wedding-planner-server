@@ -8,6 +8,8 @@ describe('Caterers Endpoints', function() {
   const {
     testUsers,
     testCaterers,
+    testPros,
+    testCons
   } = helpers.makeFixtures()
 
   before('make knex instance', () => {
@@ -72,7 +74,7 @@ describe('Caterers Endpoints', function() {
         )
       )
 
-      it('responds with 200 and all of the caterers', () => {
+      it ('responds with 200 and all of the caterers', () => {
         let expectedCaterers = []
         for(let i = 0; i<testCaterers.length; i++) {
           if (registerUser.id === +testCaterers[i].user_id) {
@@ -122,83 +124,6 @@ describe('Caterers Endpoints', function() {
     })
   })
 
-  describe(`GET /api/caterers/:caterer_id`, () => {
-    context(`Given no caterers`, () => {
-      beforeEach(() =>
-        db.into('users').insert(testUsers)
-      )
-
-      it(`responds with 404`, () => {
-        const catererId = 123456
-        return supertest(app)
-          .get(`/api/caterers/${catererId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(404, { error: { message: `Caterer doesn't exist`}})
-      })
-    })
-
-    context('Given there are caterers in the database', () => {
-      beforeEach('insert caterers', () =>
-        helpers.seedCaterersTables(
-          db,
-          testUsers,
-          testCaterers,
-        )
-      )
-
-      it('responds with 200 and the specified caterer', () => {
-        const catererId = 2
-        const expectedCaterer = helpers.makeExpectedCaterer(
-          testCaterers[catererId - 1],
-        )
-
-        return supertest(app)
-          .get(`/api/caterers/${catererId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200, expectedCaterer)
-      })
-    })
-
-    context(`Given an XSS attack caterer`, () => {
-      const testUser = registerUser
-      const {
-        maliciousCaterer,
-        expectedCaterer,
-      } = helpers.makeMaliciousCaterer(testUser)
-
-      beforeEach('insert malicious caterer', () => {
-        return helpers.seedMaliciousCaterer(
-          db,
-          maliciousCaterer,
-        )
-      })
-
-      it('removes XSS attack content', () => {
-        
-        return supertest(app)
-          .get(`/api/caterers/${maliciousCaterer.id}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200)
-          .expect(res => {
-            expect(res.body.caterer_name).to.eql(expectedCaterer.caterer_name)
-            expect(res.body.caterer_website).to.eql(expectedCaterer.caterer_website)
-            expect(res.body.caterer_type).to.eql(expectedCaterer.caterer_type)
-            expect(res.body.caterer_pros).to.eql(expectedCaterer.caterer_pros)
-            expect(res.body.caterer_cons).to.eql(expectedCaterer.caterer_cons)
-          })
-      })
-    })
-  })
-
   describe(`POST /api/caterers`, () => {
     ['caterer_name'].forEach(field => {
       const newCaterer = {
@@ -221,9 +146,11 @@ describe('Caterers Endpoints', function() {
       })
     })
 
-    it('adds a new caterer to the store', () => {
+    it ('adds a new caterer to the store', () => {
       const newCaterer = {
           caterer_name: 'test-caterer',
+          caterer_pros: [],
+          caterer_cons: [],
           user_id: 1,
       }
       return supertest(app)
@@ -234,24 +161,14 @@ describe('Caterers Endpoints', function() {
           user_email: registerUser.user_email
         })
         .expect(201)
-        .expect(res => {
+        .expect(res => {  
           expect(res.body.caterer_name).to.eql(newCaterer.caterer_name)
           expect(res.body.user_id).to.eql(newCaterer.user_id)
           expect(res.body).to.have.property('id')
-          expect(res.headers.location).to.eql(`/api/caterers/${res.body.id}`)
         })
-        .then(res =>
-          supertest(app)
-            .get(`/api/caterers/${res.body.id}`)
-            .set({
-              token: token,
-              user_email: registerUser.user_email
-            })
-            .expect(res.body)
-        )
     })
 
-    it('removes XSS attack content from response', () => {
+    it ('removes XSS attack content from response', () => {
       const testUser = registerUser
       const {
         maliciousCaterer,
@@ -277,7 +194,7 @@ describe('Caterers Endpoints', function() {
 
   describe(`PATCH /api/caterers/:caterer_id`, () => {
     context(`Given no caterers`, () => {
-      it(`responds with 404`, () => {
+      it (`responds with 404`, () => {
         const catererId = 123456
         return supertest(app)
           .patch(`/api/caterers/${catererId}`)
@@ -299,7 +216,7 @@ describe('Caterers Endpoints', function() {
         )
       )
 
-      it('responds with 204 and updates the caterer', () => {
+      it ('responds with 204 and updates the caterer', () => {
         const idToUpdate = 2
         const updateCaterer = {
           caterer_name: 'updated caterer name',
@@ -316,15 +233,6 @@ describe('Caterers Endpoints', function() {
           })
           .send(updateCaterer)
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/caterers/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedCaterer)
-          )
       })
 
       it(`responds with 204 when updating only a subset of fields`, () => {
@@ -348,15 +256,6 @@ describe('Caterers Endpoints', function() {
             fieldToIgnore: 'should not be in GET response'
           })
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/caterers/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedCaterer)
-          )
       })
     })
   })

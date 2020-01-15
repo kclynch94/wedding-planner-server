@@ -121,82 +121,6 @@ describe('Florists Endpoints', function() {
     })
   })
 
-  describe(`GET /api/florists/:florist_id`, () => {
-    context(`Given no florists`, () => {
-      beforeEach(() =>
-        db.into('users').insert(testUsers)
-      )
-
-      it(`responds with 404`, () => {
-        const floristId = 123456
-        return supertest(app)
-          .get(`/api/florists/${floristId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(404, { error: { message: `Florist doesn't exist`}})
-      })
-    })
-
-    context('Given there are florists in the database', () => {
-      beforeEach('insert florists', () =>
-        helpers.seedFloristsTables(
-          db,
-          testUsers,
-          testFlorists,
-        )
-      )
-
-      it('responds with 200 and the specified florist', () => {
-        const floristId = 2
-        const expectedFlorist = helpers.makeExpectedFlorist(
-          testFlorists[floristId - 1],
-        )
-
-        return supertest(app)
-          .get(`/api/florists/${floristId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200, expectedFlorist)
-      })
-    })
-
-    context(`Given an XSS attack florist`, () => {
-      const testUser = registerUser
-      const {
-        maliciousFlorist,
-        expectedFlorist,
-      } = helpers.makeMaliciousFlorist(testUser)
-
-      beforeEach('insert malicious florist', () => {
-        return helpers.seedMaliciousFlorist(
-          db,
-          maliciousFlorist,
-        )
-      })
-
-      it('removes XSS attack content', () => {
-        
-        return supertest(app)
-          .get(`/api/florists/${maliciousFlorist.id}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200)
-          .expect(res => {
-            expect(res.body.florist_name).to.eql(expectedFlorist.florist_name)
-            expect(res.body.florist_website).to.eql(expectedFlorist.florist_website)
-            expect(res.body.florist_pros).to.eql(expectedFlorist.florist_pros)
-            expect(res.body.florist_cons).to.eql(expectedFlorist.florist_cons)
-          })
-      })
-    })
-  })
-
   describe(`POST /api/florists`, () => {
     ['florist_name'].forEach(field => {
       const newFlorist = {
@@ -236,17 +160,7 @@ describe('Florists Endpoints', function() {
           expect(res.body.florist_name).to.eql(newFlorist.florist_name)
           expect(res.body.user_id).to.eql(newFlorist.user_id)
           expect(res.body).to.have.property('id')
-          expect(res.headers.location).to.eql(`/api/florists/${res.body.id}`)
         })
-        .then(res =>
-          supertest(app)
-            .get(`/api/florists/${res.body.id}`)
-            .set({
-              token: token,
-              user_email: registerUser.user_email
-            })
-            .expect(res.body)
-        )
     })
 
     it('removes XSS attack content from response', () => {
@@ -296,7 +210,7 @@ describe('Florists Endpoints', function() {
         )
       )
 
-      it('responds with 204 and updates the florist', () => {
+      it ('responds with 204 and updates the florist', () => {
         const idToUpdate = 2
         const updateFlorist = {
           florist_name: 'updated florist name',
@@ -313,15 +227,6 @@ describe('Florists Endpoints', function() {
           })
           .send(updateFlorist)
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/florists/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedFlorist)
-          )
       })
 
       it(`responds with 204 when updating only a subset of fields`, () => {
@@ -345,15 +250,6 @@ describe('Florists Endpoints', function() {
             fieldToIgnore: 'should not be in GET response'
           })
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/florists/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedFlorist)
-          )
       })
     })
   })

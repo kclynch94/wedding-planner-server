@@ -121,82 +121,6 @@ describe('Photographers Endpoints', function() {
     })
   })
 
-  describe(`GET /api/photographers/:photographer_id`, () => {
-    context(`Given no photographers`, () => {
-      beforeEach(() =>
-        db.into('users').insert(testUsers)
-      )
-
-      it(`responds with 404`, () => {
-        const photographerId = 123456
-        return supertest(app)
-          .get(`/api/photographers/${photographerId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(404, { error: { message: `Photographer doesn't exist`}})
-      })
-    })
-
-    context('Given there are photographers in the database', () => {
-      beforeEach('insert photographers', () =>
-        helpers.seedPhotographersTables(
-          db,
-          testUsers,
-          testPhotographers,
-        )
-      )
-
-      it('responds with 200 and the specified photographer', () => {
-        const photographerId = 2
-        const expectedPhotographer = helpers.makeExpectedPhotographer(
-          testPhotographers[photographerId - 1],
-        )
-
-        return supertest(app)
-          .get(`/api/photographers/${photographerId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200, expectedPhotographer)
-      })
-    })
-
-    context(`Given an XSS attack photographer`, () => {
-      const testUser = registerUser
-      const {
-        maliciousPhotographer,
-        expectedPhotographer,
-      } = helpers.makeMaliciousPhotographer(testUser)
-
-      beforeEach('insert malicious photographer', () => {
-        return helpers.seedMaliciousPhotographer(
-          db,
-          maliciousPhotographer,
-        )
-      })
-
-      it('removes XSS attack content', () => {
-        
-        return supertest(app)
-          .get(`/api/photographers/${maliciousPhotographer.id}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200)
-          .expect(res => {
-            expect(res.body.photographer_name).to.eql(expectedPhotographer.photographer_name)
-            expect(res.body.photographer_website).to.eql(expectedPhotographer.photographer_website)
-            expect(res.body.photographer_pros).to.eql(expectedPhotographer.photographer_pros)
-            expect(res.body.photographer_cons).to.eql(expectedPhotographer.photographer_cons)
-          })
-      })
-    })
-  })
-
   describe(`POST /api/photographers`, () => {
     ['photographer_name'].forEach(field => {
       const newPhotographer = {
@@ -236,17 +160,7 @@ describe('Photographers Endpoints', function() {
           expect(res.body.photographer_name).to.eql(newPhotographer.photographer_name)
           expect(res.body.user_id).to.eql(newPhotographer.user_id)
           expect(res.body).to.have.property('id')
-          expect(res.headers.location).to.eql(`/api/photographers/${res.body.id}`)
         })
-        .then(res =>
-          supertest(app)
-            .get(`/api/photographers/${res.body.id}`)
-            .set({
-              token: token,
-              user_email: registerUser.user_email
-            })
-            .expect(res.body)
-        )
     })
 
     it('removes XSS attack content from response', () => {
@@ -274,7 +188,7 @@ describe('Photographers Endpoints', function() {
 
   describe(`PATCH /api/photographers/:photographer_id`, () => {
     context(`Given no photographers`, () => {
-      it(`responds with 404`, () => {
+      it (`responds with 404`, () => {
         const photographerId = 123456
         return supertest(app)
           .patch(`/api/photographers/${photographerId}`)
@@ -313,15 +227,6 @@ describe('Photographers Endpoints', function() {
           })
           .send(updatePhotographer)
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/photographers/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedPhotographer)
-          )
       })
 
       it(`responds with 204 when updating only a subset of fields`, () => {
@@ -345,15 +250,6 @@ describe('Photographers Endpoints', function() {
             fieldToIgnore: 'should not be in GET response'
           })
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/photographers/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedPhotographer)
-          )
       })
     })
   })

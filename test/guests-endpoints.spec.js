@@ -122,83 +122,6 @@ describe('Guests Endpoints', function() {
     })
   })
 
-  describe(`GET /api/guests/:guest_id`, () => {
-    context(`Given no guests`, () => {
-      beforeEach(() =>
-        db.into('users').insert(testUsers)
-      )
-
-      it(`responds with 404`, () => {
-        const guestId = 123456
-        return supertest(app)
-          .get(`/api/guests/${guestId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(404, { error: { message: `Guest doesn't exist`}})
-      })
-    })
-
-    context('Given there are guests in the database', () => {
-      beforeEach('insert guests', () =>
-        helpers.seedGuestsTables(
-          db,
-          testUsers,
-          testGuests,
-        )
-      )
-
-      it('responds with 200 and the specified guest', () => {
-        const guestId = 2
-        const expectedGuest = helpers.makeExpectedGuest(
-          testGuests[guestId - 1],
-        )
-
-        return supertest(app)
-          .get(`/api/guests/${guestId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200, expectedGuest)
-      })
-    })
-
-    context(`Given an XSS attack guest`, () => {
-      const testUser = registerUser
-      const {
-        maliciousGuest,
-        expectedGuest,
-      } = helpers.makeMaliciousGuest(testUser)
-
-      beforeEach('insert malicious guest', () => {
-        return helpers.seedMaliciousGuest(
-          db,
-          maliciousGuest,
-        )
-      })
-
-      it('removes XSS attack content', () => {
-        
-        return supertest(app)
-          .get(`/api/guests/${maliciousGuest.id}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200)
-          .expect(res => {
-            expect(res.body.guest_first_name).to.eql(expectedGuest.guest_first_name)
-            expect(res.body.guest_last_name).to.eql(expectedGuest.guest_last_name)
-            expect(res.body.guest_type).to.eql(expectedGuest.guest_type)
-            expect(res.body.guest_plus_one).to.eql(expectedGuest.guest_plus_one)
-            expect(res.body.user_id).to.eql(expectedGuest.user_id)
-          })
-      })
-    })
-  })
-
   describe(`POST /api/guests`, () => {
     ['guest_first_name', 'guest_last_name', 'guest_type', 'guest_plus_one'].forEach(field => {
       const newGuest = {
@@ -247,17 +170,7 @@ describe('Guests Endpoints', function() {
           expect(res.body.guest_plus_one).to.eql(newGuest.guest_plus_one)
           expect(res.body.user_id).to.eql(newGuest.user_id)
           expect(res.body).to.have.property('id')
-          expect(res.headers.location).to.eql(`/api/guests/${res.body.id}`)
         })
-        .then(res =>
-          supertest(app)
-            .get(`/api/guests/${res.body.id}`)
-            .set({
-              token: token,
-              user_email: registerUser.user_email
-            })
-            .expect(res.body)
-        )
     })
 
     it('removes XSS attack content from response', () => {
@@ -325,15 +238,6 @@ describe('Guests Endpoints', function() {
           })
           .send(updateGuest)
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/guests/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedGuest)
-          )
       })
 
       it(`responds with 204 when updating only a subset of fields`, () => {
@@ -357,15 +261,6 @@ describe('Guests Endpoints', function() {
             fieldToIgnore: 'should not be in GET response'
           })
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/guests/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedGuest)
-          )
       })
     })
   })

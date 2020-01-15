@@ -27,6 +27,58 @@ function makeUsersArray() {
       },
     ]
   }
+
+  function makeProsArray(users) {
+    return [
+      {
+        id: 1,
+        pro_content: 'Pro 1',
+        pro_type: 'Caterer',
+        ref_id: 1,
+        user_id: users[0].id,    
+      },
+      {
+        id: 2,
+        pro_content: 'Pro 2',
+        pro_type: 'Caterer',
+        ref_id: 1,
+        user_id: users[1].id,    
+      },
+      {
+        id: 3,
+        pro_content: 'Pro 3',
+        pro_type: 'Caterer',
+        ref_id: 2,
+        user_id: users[2].id,    
+      },
+    ]
+  }
+
+  function makeConsArray(users) {
+    return [
+      {
+        id: 1,
+        con_content: 'Con 1',
+        con_type: 'Caterer',
+        ref_id: 1,
+        user_id: users[0].id,    
+      },
+      {
+        id: 2,
+        con_content: 'Con 2',
+        con_type: 'Caterer',
+        ref_id: 1,
+        user_id: users[1].id,    
+      },
+      {
+        id: 3,
+        con_content: 'Con 3',
+        con_type: 'Caterer',
+        ref_id: 2,
+        user_id: users[2].id,    
+      },
+    ]
+  }
   
   function makeCaterersArray(users) {
     return [
@@ -37,8 +89,6 @@ function makeUsersArray() {
         caterer_price: '5000',
         caterer_rating: '3',
         caterer_type: 'Italian',
-        caterer_pros: ['good 1,good 2'],
-        caterer_cons: ['bad 1'],
         user_id: users[0].id, 
       },
       {
@@ -48,8 +98,6 @@ function makeUsersArray() {
         caterer_price: '5000',
         caterer_rating: '3',
         caterer_type: 'Italian',
-        caterer_pros: ['good 1,good 2'],
-        caterer_cons: ['bad 1'],
         user_id: users[1].id,  
       },
       {
@@ -59,8 +107,6 @@ function makeUsersArray() {
         caterer_price: '5000',
         caterer_rating: '3',
         caterer_type: 'Italian',
-        caterer_pros: ['good 1,good 2'],
-        caterer_cons: ['bad 1'],
         user_id: users[2].id,  
       },
       {
@@ -70,8 +116,6 @@ function makeUsersArray() {
         caterer_price: '5000',
         caterer_rating: '3',
         caterer_type: 'Italian',
-        caterer_pros: ['good 1,good 2'],
-        caterer_cons: ['bad 1'],
         user_id: 1, 
       },
     ]
@@ -85,8 +129,6 @@ function makeUsersArray() {
         florist_website: 'https://www.youtube.com',
         florist_price: '5000',
         florist_rating: '3',
-        florist_pros: ['good 1,good 2'],
-        florist_cons: ['bad 1'],
         user_id: users[0].id,
       },
       {
@@ -95,8 +137,6 @@ function makeUsersArray() {
         florist_website: 'https://www.youtube.com',
         florist_price: '5000',
         florist_rating: '3',
-        florist_pros: ['good 1,good 2'],
-        florist_cons: ['bad 1'],
         user_id: users[1].id,  
       },
       {
@@ -105,8 +145,6 @@ function makeUsersArray() {
         florist_website: 'https://www.youtube.com',
         florist_price: '5000',
         florist_rating: '3',
-        florist_pros: ['good 1,good 2'],
-        florist_cons: ['bad 1'],
         user_id: users[2].id,  
       },
       {
@@ -115,8 +153,6 @@ function makeUsersArray() {
         florist_website: 'https://www.youtube.com',
         florist_price: '5000',
         florist_rating: '3',
-        florist_pros: ['good 1,good 2'],
-        florist_cons: ['bad 1'],
         user_id: 1, 
       },
     ];
@@ -130,8 +166,6 @@ function makeUsersArray() {
         photographer_website: 'https://www.youtube.com',
         photographer_price: '5000',
         photographer_rating: '3',
-        photographer_pros: ['good 1,good 2'],
-        photographer_cons: ['bad 1'],
         user_id: users[0].id,
       },
       {
@@ -140,8 +174,6 @@ function makeUsersArray() {
         photographer_website: 'https://www.youtube.com',
         photographer_price: '5000',
         photographer_rating: '3',
-        photographer_pros: ['good 1,good 2'],
-        photographer_cons: ['bad 1'],
         user_id: users[1].id,  
       },
       {
@@ -150,8 +182,6 @@ function makeUsersArray() {
         photographer_website: 'https://www.youtube.com',
         photographer_price: '5000',
         photographer_rating: '3',
-        photographer_pros: ['good 1,good 2'],
-        photographer_cons: ['bad 1'],
         user_id: users[2].id,  
       },
       {
@@ -160,8 +190,6 @@ function makeUsersArray() {
         photographer_website: 'https://www.youtube.com',
         photographer_price: '5000',
         photographer_rating: '3',
-        photographer_pros: ['good 1,good 2'],
-        photographer_cons: ['bad 1'],
         user_id: 1, 
       },
     ];
@@ -176,8 +204,6 @@ function makeUsersArray() {
         venue_price: '5000',
         venue_rating: '3',
         venue_capacity: '200',
-        venue_pros: ['good 1,good 2'],
-        venue_cons: ['bad 1'],
         user_id: users[0].id,
       },
       {
@@ -187,8 +213,6 @@ function makeUsersArray() {
         venue_price: '5000',
         venue_rating: '3',
         venue_capacity: '200',
-        venue_pros: ['good 1,good 2'],
-        venue_cons: ['bad 1'],
         user_id: users[1].id,  
       },
       {
@@ -198,8 +222,6 @@ function makeUsersArray() {
         venue_price: '5000',
         venue_rating: '3',
         venue_capacity: '200',
-        venue_pros: ['good 1,good 2'],
-        venue_cons: ['bad 1'],
         user_id: users[2].id,  
       },
       {
@@ -209,8 +231,6 @@ function makeUsersArray() {
         venue_price: '5000',
         venue_rating: '3',
         venue_capacity: '200',
-        venue_pros: ['good 1,good 2'],
-        venue_cons: ['bad 1'],
         user_id: 1, 
       },
     ];
@@ -257,6 +277,26 @@ function makeUsersArray() {
     ];
   }
   
+  function makeExpectedPro(pro) {
+    return {
+      id: pro.id,
+      pro_content: pro.pro_content,
+      pro_type: pro.pro_type,
+      ref_id: pro.ref_id,
+      user_id: pro.user_id,
+    }
+  }
+
+  function makeExpectedCon(con) {
+    return {
+      id: con.id,
+      con_content: con.con_content,
+      con_type: con.con_type,
+      ref_id: con.ref_id,
+      user_id: con.user_id,
+    }
+  }
+  
   function makeExpectedCaterer(caterer) {
       return {
         id: caterer.id,
@@ -265,8 +305,8 @@ function makeUsersArray() {
         caterer_price: caterer.caterer_price,
         caterer_type: caterer.caterer_type,
         caterer_rating: caterer.caterer_rating,
-        caterer_pros: caterer.caterer_pros,
-        caterer_cons: caterer.caterer_cons,
+        caterer_pros: [],
+        caterer_cons: [],
         user_id: caterer.user_id,
       }
   }
@@ -278,8 +318,8 @@ function makeUsersArray() {
       florist_website: florist.florist_website,
       florist_price: florist.florist_price,
       florist_rating: florist.florist_rating,
-      florist_pros: florist.florist_pros,
-      florist_cons: florist.florist_cons,
+      florist_pros: [],
+      florist_cons: [],
       user_id: florist.user_id,
     }
   }
@@ -291,8 +331,8 @@ function makeUsersArray() {
       photographer_website: photographer.photographer_website,
       photographer_price: photographer.photographer_price,
       photographer_rating: photographer.photographer_rating,
-      photographer_pros: photographer.photographer_pros,
-      photographer_cons: photographer.photographer_cons,
+      photographer_pros: [],
+      photographer_cons: [],
       user_id: photographer.user_id,
     }
   }
@@ -305,8 +345,8 @@ function makeUsersArray() {
       venue_price: venue.venue_price,
       venue_capacity: venue.venue_capacity,
       venue_rating: venue.venue_rating,
-      venue_pros: venue.venue_pros,
-      venue_cons: venue.venue_cons,
+      venue_pros: [],
+      venue_cons: [],
       user_id: venue.user_id,
     }
   }
@@ -323,6 +363,44 @@ function makeUsersArray() {
     }
   }
 
+  function makeMaliciousPro(user) {
+    const maliciousPro = {
+        id: 911,
+        pro_content: 'Naughty naughty very naughty <script>alert("xss");</script>',
+        pro_type: 'venue',
+        ref_id: 3,
+        user_id: user.id,
+    }
+    const expectedPro = {
+      ...makeExpectedPro(maliciousPro),
+      pro_content: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+      pro_type: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;'
+    }
+    return {
+      maliciousPro,
+      expectedPro,
+    }
+  }
+
+  function makeMaliciousCon(user) {
+    const maliciousCon = {
+        id: 911,
+        con_content: 'Naughty naughty very naughty <script>alert("xss");</script>',
+        con_type: 'Naughty naughty very naughty <script>alert("xss");</script>',
+        ref_id: 3,
+        user_id: user.id,
+    }
+    const expectedCon = {
+      ...makeExpectedPro(maliciousCon),
+      con_content: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+      con_type: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;'
+    }
+    return {
+      maliciousCon,
+      expectedCon,
+    }
+  }
+
   function makeMaliciousCaterer(user) {
     const maliciousCaterer = {
         id: 911,
@@ -331,8 +409,6 @@ function makeUsersArray() {
         caterer_price: '100',
         caterer_type: 'Naughty naughty very naughty <script>alert("xss");</script>',
         caterer_rating: '3',
-        caterer_pros: ['Naughty naughty very naughty <script>alert("xss");</script>'],
-        caterer_cons: ['Naughty naughty very naughty <script>alert("xss");</script>'],
         user_id: user.id,
     }
     const expectedCaterer = {
@@ -340,8 +416,8 @@ function makeUsersArray() {
       caterer_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       caterer_website: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       caterer_type: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
-      caterer_pros: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;'],
-      caterer_cons: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;']
+      caterer_pros: [],
+      caterer_cons: []
     }
     return {
       maliciousCaterer,
@@ -356,16 +432,14 @@ function makeUsersArray() {
         florist_website: 'Naughty naughty very naughty <script>alert("xss");</script>',
         florist_price: '100',
         florist_rating: '3',
-        florist_pros: ['Naughty naughty very naughty <script>alert("xss");</script>'],
-        florist_cons: ['Naughty naughty very naughty <script>alert("xss");</script>'],
         user_id: user.id,
     }
     const expectedFlorist = {
       ...makeExpectedFlorist(maliciousFlorist),
       florist_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       florist_website: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
-      florist_pros: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;'],
-      florist_cons: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;']
+      florist_pros: [],
+      florist_cons: []
     }
     return {
       maliciousFlorist,
@@ -380,16 +454,14 @@ function makeUsersArray() {
         photographer_website: 'Naughty naughty very naughty <script>alert("xss");</script>',
         photographer_price: '100',
         photographer_rating: '3',
-        photographer_pros: ['Naughty naughty very naughty <script>alert("xss");</script>'],
-        photographer_cons: ['Naughty naughty very naughty <script>alert("xss");</script>'],
         user_id: user.id,
     }
     const expectedPhotographer = {
       ...makeExpectedPhotographer(maliciousPhotographer),
       photographer_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       photographer_website: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
-      photographer_pros: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;'],
-      photographer_cons: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;']
+      photographer_pros: [],
+      photographer_cons: []
     }
     return {
       maliciousPhotographer,
@@ -405,16 +477,14 @@ function makeUsersArray() {
         venue_price: '100',
         venue_rating: '3',
         venue_capacity: '200',
-        venue_pros: ['Naughty naughty very naughty <script>alert("xss");</script>'],
-        venue_cons: ['Naughty naughty very naughty <script>alert("xss");</script>'],
         user_id: user.id,
     }
     const expectedVenue = {
       ...makeExpectedVenue(maliciousVenue),
       venue_name: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       venue_website: 'Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
-      venue_pros: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;'],
-      venue_cons: ['Naughty naughty very naughty &lt;script&gt;alert(\"xss\");&lt;/script&gt;']
+      venue_pros: [],
+      venue_cons: []
     }
     return {
       maliciousVenue,
@@ -447,12 +517,14 @@ function makeUsersArray() {
   
   function makeFixtures() {
     const testUsers = makeUsersArray()
+    const testPros = makeProsArray(testUsers)
+    const testCons = makeConsArray(testUsers)
     const testCaterers = makeCaterersArray(testUsers)
     const testFlorists = makeFloristsArray(testUsers)
     const testPhotographers = makePhotographersArray(testUsers)
     const testVenues = makeVenuesArray(testUsers)
     const testGuests = makeGuestsArray(testUsers)
-    return { testUsers, testCaterers, testFlorists, testPhotographers, testVenues, testGuests }
+    return { testUsers, testPros, testCons, testCaterers, testFlorists, testPhotographers, testVenues, testGuests }
   }
   
   function cleanTables(db) {
@@ -460,6 +532,8 @@ function makeUsersArray() {
       trx.raw(
         `TRUNCATE
           users,
+          pros,
+          cons,
           caterers,
           florists,
           photographers,
@@ -470,12 +544,16 @@ function makeUsersArray() {
       .then(() =>
         Promise.all([
           trx.raw(`ALTER SEQUENCE caterers_id_seq minvalue 0 START WITH 1`),
+          trx.raw(`ALTER SEQUENCE pros_id_seq minvalue 0 START WITH 1`),
+          trx.raw(`ALTER SEQUENCE cons_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE users_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE florists_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE photographers_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE venues_id_seq minvalue 0 START WITH 1`),
           trx.raw(`ALTER SEQUENCE guests_id_seq minvalue 0 START WITH 1`),
           trx.raw(`SELECT setval('caterers_id_seq', 0)`),
+          trx.raw(`SELECT setval('pros_id_seq', 0)`),
+          trx.raw(`SELECT setval('cons_id_seq', 0)`),
           trx.raw(`SELECT setval('users_id_seq', 0)`),
           trx.raw(`SELECT setval('florists_id_seq', 0)`),
           trx.raw(`SELECT setval('photographers_id_seq', 0)`),
@@ -484,6 +562,56 @@ function makeUsersArray() {
         ])
       )
     )
+  }
+
+  function seedProsTables(db, users, pros) {
+    // use a transaction to group the queries and auto rollback on any failure
+    return db.transaction(async trx => {
+      await trx.into('users').insert(users)
+      await trx.into('pros').insert(pros)
+      // update the auto sequence to match the forced id values
+      await Promise.all([
+        trx.raw(
+          `SELECT setval('users_id_seq', ?)`,
+          [users[users.length - 1].id],
+        ),
+        trx.raw(
+          `SELECT setval('pros_id_seq', ?)`,
+          [pros[pros.length - 1].id],
+        ),
+      ])
+    })
+  }
+
+  function seedMaliciousPro(db, pro) {
+    return db
+        .into('pros')
+        .insert([pro])
+  }
+
+  function seedConsTables(db, users, cons) {
+    // use a transaction to group the queries and auto rollback on any failure
+    return db.transaction(async trx => {
+      await trx.into('users').insert(users)
+      await trx.into('cons').insert(cons)
+      // update the auto sequence to match the forced id values
+      await Promise.all([
+        trx.raw(
+          `SELECT setval('users_id_seq', ?)`,
+          [users[users.length - 1].id],
+        ),
+        trx.raw(
+          `SELECT setval('cons_id_seq', ?)`,
+          [cons[cons.length - 1].id],
+        ),
+      ])
+    })
+  }
+
+  function seedMaliciousCon(db, con) {
+    return db
+        .into('cons')
+        .insert([con])
   }
   
   function seedCaterersTables(db, users, caterers) {
@@ -632,16 +760,22 @@ function makeUsersArray() {
   }
   module.exports = {
     makeUsersArray,
+    makeProsArray,
+    makeConsArray,
     makeCaterersArray,
     makeFloristsArray,
     makePhotographersArray,
     makeVenuesArray,
     makeGuestsArray,
+    makeExpectedPro,
+    makeExpectedCon,
     makeExpectedCaterer,
     makeExpectedFlorist,
     makeExpectedPhotographer,
     makeExpectedVenue,
     makeExpectedGuest,
+    makeMaliciousPro,
+    makeMaliciousCon,
     makeMaliciousCaterer,
     makeMaliciousFlorist,
     makeMaliciousPhotographer,
@@ -651,6 +785,10 @@ function makeUsersArray() {
   
     makeFixtures,
     cleanTables,
+    seedProsTables,
+    seedMaliciousPro,
+    seedConsTables,
+    seedMaliciousCon,
     seedCaterersTables,
     seedMaliciousCaterer,
     seedFloristsTables,

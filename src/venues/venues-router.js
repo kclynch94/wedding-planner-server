@@ -79,21 +79,26 @@ venuesRouter
                     const pros = []
                     const cons = []
 
-                    venue_pros.forEach(p => {
-                        const newPro = { pro_content: p, pro_type: 'venue', ref_id: venue.id, user_id: venue.user_id }
-                        pros.push(ProsService.insertPro(
-                            req.app.get('db'),
-                            newPro
-                        ))
-                    })
+                    if(venue_pros && venue_pros.length) {
+                        venue_pros.forEach(p => {
+                            const newPro = { pro_content: p, pro_type: 'venue', ref_id: venue.id, user_id: venue.user_id }
+                            pros.push(ProsService.insertPro(
+                                req.app.get('db'),
+                                newPro
+                            ))
+                        })
+                    }
 
-                    venue_cons.forEach(c => {
-                        const newCon = { con_content: c, con_type: 'venue', ref_id: venue.id, user_id: venue.user_id }
-                        cons.push(ConsService.insertCon(
-                            req.app.get('db'),
-                            newCon
-                        ))
-                    })
+                    if(venue_cons && venue_cons.length) {
+                        venue_cons.forEach(c => {
+                            const newCon = { con_content: c, con_type: 'venue', ref_id: venue.id, user_id: venue.user_id }
+                            cons.push(ConsService.insertCon(
+                                req.app.get('db'),
+                                newCon
+                            ))
+                        })
+                    }
+
                     const promises = [...pros, ...cons]
                     Promise.all(promises).then((data)=> {
                         const serializedVenue = serializeVenue(venue)
@@ -111,8 +116,21 @@ venuesRouter
 venuesRouter
     .route('/:venue_id')
     .all(requireAuth)
-    .get((req, res, next) => {
-        res.json(serializeVenue(res.venue))
+    .all((req, res, next) => {
+        VenuesService.getById(
+            req.app.get('db'),
+            req.params.venue_id
+        )
+            .then(venue => {
+                if (!venue) {
+                    return res.status(404).json({
+                        error: { message: `Venue doesn't exist` }
+                    })
+                }
+                res.venue = venue
+                next()
+            })
+            .catch(next)
     })
     .delete((req, res, next) => {
         VenuesService.deleteVenue(
@@ -142,42 +160,54 @@ venuesRouter
                 const consToDelete = []
                 const consToCreate = []
                 //1. Update existing pros/cons or create pros/cons that do not have an id
-                const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'venue', req.params.venue_id )
-                const currentProsIds = currentPros.map(p => p.id)
-                const requestProsIds = venue_pros.map(p => p.id)
-                const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'venue', req.params.venue_id )
-                const currentConsIds = currentCons.map(c => c.id)
-                const requestConsIds = venue_cons.map(c => c.id)
-                const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
-                const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
-                venue_pros.forEach(p => {
-                    if (currentProsIds.includes(p.id)) {
-                        prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
-                    } else {
-                        prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'venue', pro_content: p.pro_content, ref_id: req.params.venue_id, user_id: req.user.id}))
-                    }
-                })
-                venue_cons.forEach(c => {
-                    if (currentConsIds.includes(c.id)) {
-                        consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
-                    } else {
-                        consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'venue', con_content: c.con_content, ref_id: req.params.venue_id, user_id: req.user.id}))
-                    }
-                })
+                if(venue_pros && venue_pros.length) {
+                    const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'venue', req.params.venue_id )
+                    const currentProsIds = currentPros.map(p => p.id)
+                    const requestProsIds = venue_pros.map(p => p.id)
+                    const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
+
+                    venue_pros.forEach(p => {
+                        if (currentProsIds.includes(p.id)) {
+                            prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
+                        } else {
+                            prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'venue', pro_content: p.pro_content, ref_id: req.params.venue_id, user_id: req.user.id}))
+                        }
+                    })
+
+                    proIdsToDelete.forEach(id => {
+                        prosToDelete.push(ProsService.deletePro(knexInstance, id))
+                    })
+                }
+
+                if(venue_cons && venue_cons.length) {
+                    const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'venue', req.params.venue_id )
+                    const currentConsIds = currentCons.map(c => c.id)
+                    const requestConsIds = venue_cons.map(c => c.id)
+                    const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
+                    
+                    venue_cons.forEach(c => {
+                        if (currentConsIds.includes(c.id)) {
+                            consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
+                        } else {
+                            consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'venue', con_content: c.con_content, ref_id: req.params.venue_id, user_id: req.user.id}))
+                        }
+                    })
+
+                    conIdsToDelete.forEach(id => {
+                        consToDelete.push(ConsService.deleteCon(knexInstance, id))
+                    })
+                }
+                
+                
                 //2. Delete the pros/cons that do not exist anymore
-                proIdsToDelete.forEach(id => {
-                    prosToDelete.push(ProsService.deletePro(knexInstance, id))
-                })
-                conIdsToDelete.forEach(id => {
-                    consToDelete.push(ConsService.deleteCon(knexInstance, id))
-                })
+               
+                
                 const promises = [...prosToUpdate, ...prosToDelete, ...prosToCreate, ...consToUpdate, ...consToDelete, ...consToCreate]
-                Promise.all(promises).then(data => {
-                    console.log(data)
-                })
-                
-                
-                res.status(204).end()
+                await Promise.all(promises)
+                return res
+                    .status(204)
+                    .location(path.posix.join(req.originalUrl, `/${req.params.venue_id}`))
+                    .json(venueToUpdate)
             })
             .catch(next)
     })

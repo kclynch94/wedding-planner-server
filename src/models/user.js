@@ -26,7 +26,6 @@ const signup = (request, response) => {
 
 const hashPassword = (password) => {
   return new Promise((resolve, reject) => {
-  console.log('password', password)
     if(password) {
       return bcrypt.hash(password, 10, (err, hash) => {
         err ? reject(err) : resolve(hash)
@@ -90,12 +89,9 @@ const findUser = (db, userReq) => {
 
 const checkPassword = (reqPassword, foundUser) => {
   return new Promise((resolve, reject) =>{
-    console.log('reqPassword', reqPassword)
-    console.log('foundUser', foundUser)
     return (
         bcrypt.compare(reqPassword, foundUser.user_password_digest, (err, response) => {
         if (err) {
-          console.log('err here')
           return reject(err)
         }
         else if (response) {
@@ -120,7 +116,6 @@ const updateUserToken = (db, token, user) => {
 const authenticate = (db, userReq) => {
     return (findByToken(db, userReq.token)
       .then((user) => {
-        console.log('authenticate user', user)
         if (user && (user.user_email == userReq.user_email)) {
           return user
         } else {
@@ -130,10 +125,8 @@ const authenticate = (db, userReq) => {
   }
   
 const findByToken = (db, token) => {
-  console.log('token', token)
     return db.raw("SELECT * FROM users WHERE user_token = ?", [token])
       .then((data) => {
-        console.log('data', data)
         return data.rows[0]
       })
 }

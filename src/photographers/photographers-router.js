@@ -80,21 +80,26 @@ photographersRouter
                     const pros = []
                     const cons = []
 
-                    photographer_pros.forEach(p => {
-                        const newPro = { pro_content: p, pro_type: 'photographer', ref_id: photographer.id, user_id: photographer.user_id }
-                        pros.push(ProsService.insertPro(
-                            req.app.get('db'),
-                            newPro
-                        ))
-                    })
+                    if(photographer_pros && photographer_pros.length) {
+                        photographer_pros.forEach(p => {
+                            const newPro = { pro_content: p, pro_type: 'photographer', ref_id: photographer.id, user_id: photographer.user_id }
+                            pros.push(ProsService.insertPro(
+                                req.app.get('db'),
+                                newPro
+                            ))
+                        })
+                    }
 
-                    photographer_cons.forEach(c => {
-                        const newCon = { con_content: c, con_type: 'photographer', ref_id: photographer.id, user_id: photographer.user_id }
-                        cons.push(ConsService.insertCon(
-                            req.app.get('db'),
-                            newCon
-                        ))
-                    })
+                    if(photographer_cons && photographer_cons.length) {
+                        photographer_cons.forEach(c => {
+                            const newCon = { con_content: c, con_type: 'photographer', ref_id: photographer.id, user_id: photographer.user_id }
+                            cons.push(ConsService.insertCon(
+                                req.app.get('db'),
+                                newCon
+                            ))
+                        })
+                    }
+
                     const promises = [...pros, ...cons]
                     Promise.all(promises).then((data)=> {
                         console.log('data', data)
@@ -113,8 +118,21 @@ photographersRouter
 photographersRouter
     .route('/:photographer_id')
     .all(requireAuth)
-    .get((req, res, next) => {
-        res.json(serializePhotographer(res.photographer))
+    .all((req, res, next) => {
+        PhotographersService.getById(
+            req.app.get('db'),
+            req.params.photographer_id
+        )
+            .then(photographer => {
+                if (!photographer) {
+                    return res.status(404).json({
+                        error: { message: `Photographer doesn't exist` }
+                    })
+                }
+                res.photographer = photographer
+                next()
+            })
+            .catch(next)
     })
     .delete((req, res, next) => {
         PhotographersService.deletePhotographer(
@@ -144,42 +162,54 @@ photographersRouter
             const consToDelete = []
             const consToCreate = []
             //1. Update existing pros/cons or create pros/cons that do not have an id
-            const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'photographer', req.params.photographer_id )
-            const currentProsIds = currentPros.map(p => p.id)
-            const requestProsIds = photographer_pros.map(p => p.id)
-            const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'photographer', req.params.photographer_id )
-            const currentConsIds = currentCons.map(c => c.id)
-            const requestConsIds = photographer_cons.map(c => c.id)
-            const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
-            const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
-            photographer_pros.forEach(p => {
-                if (currentProsIds.includes(p.id)) {
-                    prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
-                } else {
-                    prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'photographer', pro_content: p.pro_content, ref_id: req.params.photographer_id, user_id: req.user.id}))
-                }
-            })
-            photographer_cons.forEach(c => {
-                if (currentConsIds.includes(c.id)) {
-                    consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
-                } else {
-                    consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'photographer', con_content: c.con_content, ref_id: req.params.photographer_id, user_id: req.user.id}))
-                }
-            })
+            if(photographer_pros && photographer_pros.length) {
+                const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'photographer', req.params.photographer_id )
+                const currentProsIds = currentPros.map(p => p.id)
+                const requestProsIds = photographer_pros.map(p => p.id)
+                const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
+
+                photographer_pros.forEach(p => {
+                    if (currentProsIds.includes(p.id)) {
+                        prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
+                    } else {
+                        prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'photographer', pro_content: p.pro_content, ref_id: req.params.photographer_id, user_id: req.user.id}))
+                    }
+                })
+
+                proIdsToDelete.forEach(id => {
+                    prosToDelete.push(ProsService.deletePro(knexInstance, id))
+                })
+            }
+
+            if(photographer_cons && photographer_cons.length) {
+                const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'photographer', req.params.photographer_id )
+                const currentConsIds = currentCons.map(c => c.id)
+                const requestConsIds = photographer_cons.map(c => c.id)
+                const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
+                
+                photographer_cons.forEach(c => {
+                    if (currentConsIds.includes(c.id)) {
+                        consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
+                    } else {
+                        consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'photographer', con_content: c.con_content, ref_id: req.params.photographer_id, user_id: req.user.id}))
+                    }
+                })
+
+                conIdsToDelete.forEach(id => {
+                    consToDelete.push(ConsService.deleteCon(knexInstance, id))
+                })
+            }
+           
+            
             //2. Delete the pros/cons that do not exist anymore
-            proIdsToDelete.forEach(id => {
-                prosToDelete.push(ProsService.deletePro(knexInstance, id))
-            })
-            conIdsToDelete.forEach(id => {
-                consToDelete.push(ConsService.deleteCon(knexInstance, id))
-            })
+           
+            
             const promises = [...prosToUpdate, ...prosToDelete, ...prosToCreate, ...consToUpdate, ...consToDelete, ...consToCreate]
-            Promise.all(promises).then(data => {
-                return data
-            })
-            
-            
-            res.status(204).end()
+            await Promise.all(promises)
+            return res
+                        .status(204)
+                        .location(path.posix.join(req.originalUrl, `/${req.params.photographer_id}`))
+                        .json(photographerToUpdate)
         })
             .catch(next)
     })

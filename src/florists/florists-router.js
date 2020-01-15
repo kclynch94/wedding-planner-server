@@ -78,21 +78,25 @@ floristsRouter
                     const pros = []
                     const cons = []
 
-                    florist_pros.forEach(p => {
-                        const newPro = { pro_content: p, pro_type: 'florist', ref_id: florist.id, user_id: florist.user_id }
-                        pros.push(ProsService.insertPro(
-                            req.app.get('db'),
-                            newPro
-                        ))
-                    })
+                    if(florist_pros && florist_pros.length) {
+                        florist_pros.forEach(p => {
+                            const newPro = { pro_content: p, pro_type: 'florist', ref_id: florist.id, user_id: florist.user_id }
+                            pros.push(ProsService.insertPro(
+                                req.app.get('db'),
+                                newPro
+                            ))
+                        })
+                    }
 
-                    florist_cons.forEach(c => {
-                        const newCon = { con_content: c, con_type: 'florist', ref_id: florist.id, user_id: florist.user_id }
-                        cons.push(ConsService.insertCon(
-                            req.app.get('db'),
-                            newCon
-                        ))
-                    })
+                    if(florist_cons && florist_cons.length) {
+                        florist_cons.forEach(c => {
+                            const newCon = { con_content: c, con_type: 'florist', ref_id: florist.id, user_id: florist.user_id }
+                            cons.push(ConsService.insertCon(
+                                req.app.get('db'),
+                                newCon
+                            ))
+                        })
+                    }
                     const promises = [...pros, ...cons]
                     Promise.all(promises).then((data)=> {
                         const serializedFlorist = serializeFlorist(florist)
@@ -110,8 +114,21 @@ floristsRouter
 floristsRouter
     .route('/:florist_id')
     .all(requireAuth)
-    .get((req, res, next) => {
-        res.json(serializeFlorist(res.florist))
+    .all((req, res, next) => {
+        FloristsService.getById(
+            req.app.get('db'),
+            req.params.florist_id
+        )
+            .then(florist => {
+                if (!florist) {
+                    return res.status(404).json({
+                        error: { message: `Florist doesn't exist` }
+                    })
+                }
+                res.florist = florist
+                next()
+            })
+            .catch(next)
     })
     .delete((req, res, next) => {
         FloristsService.deleteFlorist(
@@ -141,42 +158,56 @@ floristsRouter
                 const consToDelete = []
                 const consToCreate = []
                 //1. Update existing pros/cons or create pros/cons that do not have an id
-                const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'florist', req.params.florist_id )
-                const currentProsIds = currentPros.map(p => p.id)
-                const requestProsIds = florist_pros.map(p => p.id)
-                const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'florist', req.params.florist_id )
-                const currentConsIds = currentCons.map(c => c.id)
-                const requestConsIds = florist_cons.map(c => c.id)
-                const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
-                const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
-                florist_pros.forEach(p => {
-                    if (currentProsIds.includes(p.id)) {
-                        prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
-                    } else {
-                        prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'florist', pro_content: p.pro_content, ref_id: req.params.florist_id, user_id: req.user.id}))
-                    }
-                })
-                florist_cons.forEach(c => {
-                    if (currentConsIds.includes(c.id)) {
-                        consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
-                    } else {
-                        consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'florist', con_content: c.con_content, ref_id: req.params.florist_id, user_id: req.user.id}))
-                    }
-                })
+                if(florist_pros && florist_pros.length) {
+                    const currentPros = await ProsService.getAllProsBy(knexInstance, req.user.id, 'florist', req.params.florist_id )
+                    const currentProsIds = currentPros.map(p => p.id)
+                    const requestProsIds = florist_pros.map(p => p.id)
+                    const proIdsToDelete = currentProsIds.filter(id => !requestProsIds.includes(id))
+                    
+                    florist_pros.forEach(p => {
+                        if (currentProsIds.includes(p.id)) {
+                            prosToUpdate.push(ProsService.updatePro(knexInstance, p.id, {pro_content: p.pro_content}))
+                        } else {
+                            prosToCreate.push(ProsService.insertPro(knexInstance, {pro_type: 'florist', pro_content: p.pro_content, ref_id: req.params.florist_id, user_id: req.user.id}))
+                        }
+                    })
+
+                    proIdsToDelete.forEach(id => {
+                        prosToDelete.push(ProsService.deletePro(knexInstance, id))
+                    })
+                }
+
+                if(florist_cons && florist_cons.length) {
+                    const currentCons = await ConsService.getAllConsBy(knexInstance, req.user.id, 'florist', req.params.florist_id )
+                    const currentConsIds = currentCons.map(c => c.id)
+                    const requestConsIds = florist_cons.map(c => c.id)
+                    const conIdsToDelete = currentConsIds.filter(id => !requestConsIds.includes(id))
+               
+                    florist_cons.forEach(c => {
+                        if (currentConsIds.includes(c.id)) {
+                            consToUpdate.push(ConsService.updateCon(knexInstance, c.id, {con_content: c.con_content}))
+                        } else {
+                            consToCreate.push(ConsService.insertCon(knexInstance, {con_type: 'florist', con_content: c.con_content, ref_id: req.params.florist_id, user_id: req.user.id}))
+                        }
+                    })
+
+                    conIdsToDelete.forEach(id => {
+                        consToDelete.push(ConsService.deleteCon(knexInstance, id))
+                    })
+                }
+                
+                
+                
+               
                 //2. Delete the pros/cons that do not exist anymore
-                proIdsToDelete.forEach(id => {
-                    prosToDelete.push(ProsService.deletePro(knexInstance, id))
-                })
-                conIdsToDelete.forEach(id => {
-                    consToDelete.push(ConsService.deleteCon(knexInstance, id))
-                })
+               
+                
                 const promises = [...prosToUpdate, ...prosToDelete, ...prosToCreate, ...consToUpdate, ...consToDelete, ...consToCreate]
-                Promise.all(promises).then(data => {
-                    return data
-                })
-                
-                
-                res.status(204).end()
+                await Promise.all(promises)
+                return res
+                        .status(204)
+                        .location(path.posix.join(req.originalUrl, `/${req.params.florist_id}`))
+                        .json(floristToUpdate)
             })
             .catch(next)
     })

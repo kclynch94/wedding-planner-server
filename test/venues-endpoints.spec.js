@@ -121,82 +121,6 @@ describe('Venues Endpoints', function() {
     })
   })
 
-  describe(`GET /api/venues/:venue_id`, () => {
-    context(`Given no venues`, () => {
-      beforeEach(() =>
-        db.into('users').insert(testUsers)
-      )
-
-      it(`responds with 404`, () => {
-        const venueId = 123456
-        return supertest(app)
-          .get(`/api/venues/${venueId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(404, { error: { message: `Venue doesn't exist`}})
-      })
-    })
-
-    context('Given there are venues in the database', () => {
-      beforeEach('insert venues', () =>
-        helpers.seedVenuesTables(
-          db,
-          testUsers,
-          testVenues,
-        )
-      )
-
-      it('responds with 200 and the specified venue', () => {
-        const venueId = 2
-        const expectedVenue = helpers.makeExpectedVenue(
-          testVenues[venueId - 1],
-        )
-
-        return supertest(app)
-          .get(`/api/venues/${venueId}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200, expectedVenue)
-      })
-    })
-
-    context(`Given an XSS attack venue`, () => {
-      const testUser = registerUser
-      const {
-        maliciousVenue,
-        expectedVenue,
-      } = helpers.makeMaliciousVenue(testUser)
-
-      beforeEach('insert malicious venue', () => {
-        return helpers.seedMaliciousVenue(
-          db,
-          maliciousVenue,
-        )
-      })
-
-      it('removes XSS attack content', () => {
-        
-        return supertest(app)
-          .get(`/api/venues/${maliciousVenue.id}`)
-          .set({
-            token: token,
-            user_email: registerUser.user_email
-          })
-          .expect(200)
-          .expect(res => {
-            expect(res.body.venue_name).to.eql(expectedVenue.venue_name)
-            expect(res.body.venue_website).to.eql(expectedVenue.venue_website)
-            expect(res.body.venue_pros).to.eql(expectedVenue.venue_pros)
-            expect(res.body.venue_cons).to.eql(expectedVenue.venue_cons)
-          })
-      })
-    })
-  })
-
   describe(`POST /api/venues`, () => {
     ['venue_name'].forEach(field => {
       const newVenue = {
@@ -236,17 +160,7 @@ describe('Venues Endpoints', function() {
           expect(res.body.venue_name).to.eql(newVenue.venue_name)
           expect(res.body.user_id).to.eql(newVenue.user_id)
           expect(res.body).to.have.property('id')
-          expect(res.headers.location).to.eql(`/api/venues/${res.body.id}`)
         })
-        .then(res =>
-          supertest(app)
-            .get(`/api/venues/${res.body.id}`)
-            .set({
-              token: token,
-              user_email: registerUser.user_email
-            })
-            .expect(res.body)
-        )
     })
 
     it('removes XSS attack content from response', () => {
@@ -313,15 +227,6 @@ describe('Venues Endpoints', function() {
           })
           .send(updateVenue)
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/venues/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedVenue)
-          )
       })
 
       it(`responds with 204 when updating only a subset of fields`, () => {
@@ -345,15 +250,6 @@ describe('Venues Endpoints', function() {
             fieldToIgnore: 'should not be in GET response'
           })
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/venues/${idToUpdate}`)
-              .set({
-                token: token,
-                user_email: registerUser.user_email
-              })
-              .expect(expectedVenue)
-          )
       })
     })
   })

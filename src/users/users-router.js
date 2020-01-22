@@ -8,7 +8,7 @@ const usersRouter = express.Router()
 const jsonParser = express.json()
 
 const serializeUser = user => {
-    if (user.id) {
+    if (user && user.id) {
             return {
             id: user.id,
             user_first_name: xss(user.user_first_name),

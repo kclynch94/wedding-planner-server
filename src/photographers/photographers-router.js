@@ -43,10 +43,8 @@ photographersRouter
                     })
                     const promises = [...prosPromises, ...consPromises]
                     Promise.all(promises).then(data => {
-                        console.log('get data', data)
                         const photographer_pros=flatten(data).filter(d => d.hasOwnProperty('pro_type'))
                         const photographer_cons=flatten(data).filter(d => d.hasOwnProperty('con_type'))
-                        console.log('pros', photographer_pros)
                         const svs = serializedPhotographers.map(ph => {
                             const ps = photographer_pros.filter(p => p.ref_id === ph.id)
                             const cs = photographer_cons.filter(c => c.ref_id === ph.id)
@@ -61,7 +59,6 @@ photographersRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        console.log('post req body', req.body)
         const { photographer_name, photographer_website, photographer_pros, photographer_cons } = req.body
         const newPhotographer = { photographer_name, photographer_website, user_id: req.user.id }
         const requiredFields = { photographer_name }
@@ -102,7 +99,6 @@ photographersRouter
 
                     const promises = [...pros, ...cons]
                     Promise.all(promises).then((data)=> {
-                        console.log('data', data)
                         const serializedPhotographer = serializePhotographer(photographer)
                         serializedPhotographer.photographer_pros=data.filter(d => d.hasOwnProperty('pro_type'))
                         serializedPhotographer.photographer_cons=data.filter(d => d.hasOwnProperty('con_type'))

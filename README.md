@@ -2,6 +2,8 @@
 
 Here is the link to the [live app](https://kclynch94-wedding-planner.now.sh/).
 
+![picture of the user interface](2019-12-27_1716.png)
+
 ## Summary
 
 This app is designed to help people plan there weddings. With tons of options out there for each piece of a wedding it be hard to pick the right one and even keep track of all the options. Wedding planner allows you to log your favorites and compare them.
@@ -22,7 +24,7 @@ This API has endpoints for the following:
 
 All of the endpoints have CRUD operations
 
-Pros and Cons each have their own table in the data base
+Pros and Cons each have their own table in the database
 
 ### Venues
 * id

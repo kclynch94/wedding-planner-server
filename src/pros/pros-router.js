@@ -34,7 +34,6 @@ prosRouter
             }
         })
     .post(jsonParser, (req, res, next) => {
-        console.log('req.user', req.user)
         const { pro_content, pro_type, ref_id  } = req.body
         const newPro = { pro_content, pro_type, ref_id }
         const requiredFields = {pro_content, pro_type, ref_id}

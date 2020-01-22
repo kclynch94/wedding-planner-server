@@ -100,7 +100,6 @@ describe('Auth Endpoints', function() {
               .where({ id: res.body.user.id })
               .first()
               .then(row => {
-                console.log('password_digest', row.user_password_digest)
                 expect(row.user_first_name).to.eql(newUser.user_first_name)
                 expect(row.user_last_name).to.eql(newUser.user_last_name)
                 expect(row.user_email).to.eql(newUser.user_email)
